@@ -45,14 +45,6 @@ fmw_installations:
     fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
     log_output:              true
     remote_file:             false
-  'b2b1213':
-    version:                 *wls_version
-    fmw_product:             "b2b"
-    healthcare:              true
-    fmw_file1:               "fmw_12.1.3.0.0_b2b_Disk1_1of1.zip"
-    log_output:              true
-    remote_file:             false
-
 
 # when you have just one domain on a server
 domain_name:                "soa_domain"

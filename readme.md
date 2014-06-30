@@ -39,5 +39,4 @@ http://10.10.10.21:7001/em with weblogic1 as password
 - fmw_12.1.3.0.0_infrastructure.jar
 - fmw_12.1.3.0.0_osb_Disk1_1of1.zip
 - fmw_12.1.3.0.0_soa_Disk1_1of1.zip
-- fmw_12.1.3.0.0_b2b_Disk1_1of1.zip
 
