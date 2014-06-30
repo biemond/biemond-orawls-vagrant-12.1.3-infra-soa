@@ -1,0 +1,105 @@
+---
+
+wls_weblogic_home_dir:    &wls_weblogic_home_dir    "/opt/oracle/middleware12c/wlserver"
+wls_middleware_home_dir:  &wls_middleware_home_dir  "/opt/oracle/middleware12c"
+wls_version:              &wls_version              1213
+wls_domains_dir:          &wls_domains_dir          '/opt/oracle/wlsdomains/domains'
+wls_apps_dir:             &wls_apps_dir             '/opt/oracle/wlsdomains/applications'
+
+orawls::weblogic::log_output:           true
+orawls::weblogic::wls_domains_dir:      *wls_domains_dir
+orawls::weblogic::wls_apps_dir:         *wls_apps_dir
+orawls::weblogic::version:              *wls_version
+orawls::weblogic::filename:             "fmw_12.1.3.0.0_infrastructure.jar"
+orawls::weblogic::middleware_home_dir:  *wls_middleware_home_dir
+orawls::weblogic::fmw_infra:            true
+
+orautils::osMdwHomeParam:         *wls_middleware_home_dir
+orautils::osWlHomeParam:          *wls_weblogic_home_dir
+
+orautils::osDomainTypeParam:      "admin"
+orautils::osDomainParam:          "soa_domain"
+orautils::osDomainPathParam:      "/opt/oracle/wlsdomains/domains/soa_domain"
+orautils::nodeMgrPathParam:       "/opt/oracle/wlsdomains/domains/soa_domain/bin"
+
+orautils::nodeMgrPortParam:       5556
+orautils::nodeMgrAddressParam:    '10.10.10.21'
+orautils::wlsUserParam:           "weblogic"
+orautils::wlsPasswordParam:       "weblogic1"
+orautils::wlsAdminServerParam:    "AdminServer"
+
+logoutput:                     &logoutput                     true
+
+# FMW installation on top of WebLogic 12.1.3
+fmw_installations:
+  'soa1213':
+    version:                 *wls_version
+    fmw_product:             "soa"
+    fmw_file1:               "fmw_12.1.3.0.0_soa_Disk1_1of1.zip"
+    bpm:                     true
+    log_output:              true
+    remote_file:             false
+  'osb1213':
+    version:                 *wls_version
+    fmw_product:             "osb"
+    fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
+    log_output:              true
+    remote_file:             false
+  'b2b1213':
+    version:                 *wls_version
+    fmw_product:             "b2b"
+    healthcare:              true
+    fmw_file1:               "fmw_12.1.3.0.0_b2b_Disk1_1of1.zip"
+    log_output:              true
+    remote_file:             false
+
+
+# when you have just one domain on a server
+domain_name:                "soa_domain"
+domain_adminserver:         "AdminServer"
+domain_adminserver_address: "10.10.10.21"
+domain_adminserver_port:    7001
+domain_nodemanager_port:    5556
+domain_wls_password:        "weblogic1"
+domain_user_config_file:    "/home/oracle/oracle-soa_domain-WebLogicConfig.properties"
+domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properties"
+
+# create a soa domain
+domain_instances:
+  'soa_domain':
+    version:                  *wls_version
+    domain_template:          "osb_soa_bpm"
+    bam_enabled:              true
+    b2b_enabled:              true
+    ess_enabled:              true
+    development_mode:         true
+    log_output:               *logoutput
+    nodemanager_address:      "10.10.10.21"
+    repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
+    repository_prefix:        "DEV"
+    repository_password:      "Welcome01"
+    repository_sys_password:  "Welcome01"
+    rcu_database_url:         "soadb.example.com:1521:soarepos"
+
+# create and startup the nodemanager
+nodemanager_instances:
+  'nodemanager':
+     nodemanager_address:  "10.10.10.21"
+     log_output:           *logoutput
+
+# startup adminserver for extra configuration
+control_instances:
+  'startWLSAdminServer':
+     domain_name:          "soa_domain"
+     server_type:          'admin'
+     target:               'Server'
+     server:               'AdminServer'
+     action:               'start'
+     log_output:           *logoutput
+
+# create password file for WLST utility
+userconfig_instances:
+  'soa_domain':
+     log_output:           *logoutput
+     user_config_dir:      '/home/oracle'
+

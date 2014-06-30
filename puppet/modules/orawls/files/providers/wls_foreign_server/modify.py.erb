@@ -1,0 +1,68 @@
+# check the domain else we need to skip this (done in wls_access.rb)
+real_domain='<%= domain %>'
+
+
+
+name                      = '<%= foreign_server_name %>'
+jmsmodule                 = '<%= jmsmodule %>'
+subdeployment             = '<%= subdeployment %>'
+defaulttargeting          = '<%= defaulttargeting %>'
+initialcontextfactory     = '<%= initialcontextfactory %>'
+password                  = '<%= password %>'
+connectionurl             = '<%= connectionurl %>'
+extraproperties           = '<%= extraproperties %>'
+extrapropertiesvalues     = '<%= extrapropertiesvalues %>'
+
+edit()
+startEdit()
+
+try:
+
+    cd('/')
+    cd('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/ForeignServers/'+name)
+
+    if defaulttargeting  == '1':
+      cmo.setDefaultTargetingEnabled(true)
+
+    if subdeployment:
+      cmo.setSubDeploymentName(subdeployment)
+
+    if connectionurl:
+      cmo.setConnectionURL(connectionurl)
+
+    if initialcontextfactory:
+      cmo.setInitialContextFactory(initialcontextfactory)
+
+    if password:
+      cmo.setJNDIPropertiesCredential(password)  
+
+    if extraproperties:
+      if extrapropertiesvalues:
+          properties=String(extraproperties).split(",")
+          values=String(extrapropertiesvalues).split(",")
+
+          i = 0
+          for property in properties:
+              cd('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/ForeignServers/'+name)
+              try:
+                cmo.createJNDIProperty(property)
+              except:
+                print "already exists"
+              cd('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/ForeignServers/'+name + '/JNDIProperties/' +property)
+              cmo.setValue(values[i])
+              i = i + 1
+
+    save()
+    activate()          
+    print "~~~~COMMAND SUCCESFULL~~~~"
+
+except:
+    print "Unexpected error:", sys.exc_info()[0]
+    print "~~~~COMMAND FAILED~~~~"
+    dumpStack()
+    undo('true','y')
+    stopEdit('y')
+    raise
+
+
+

@@ -1,0 +1,37 @@
+
+
+def quote(text):
+    if text:
+        return "\"" + str(text).replace("\"", "\"\"") + "\""
+    else: 
+        return ""
+
+m = ls('/JMSSystemResources')
+
+f = open("/tmp/wlstScript.out", "w")
+print >>f, "name;jmsmodule;jndiname;subdeployment;defaulttargeting;xaenabled;transactiontimeout;domain"
+for token in m.split("dr--"):
+    token=token.strip().lstrip().rstrip()
+    if token:
+        n = ls('/JMSSystemResources/'+token+'/JMSResource/'+token+'/ConnectionFactories')
+        for token2 in n.split("dr--"):
+            token2=token2.strip().lstrip().rstrip()
+            if not token2 == '':
+               cd('/JMSSystemResources/'+token+'/JMSResource/'+token+'/ConnectionFactories/'+token2)
+               jndiname           = get('JNDIName') 
+               defaultTargeting   = str(get('DefaultTargetingEnabled'))
+               if defaultTargeting == '1':
+                  subdeployment = ''
+               else:
+                  subdeployment = cmo.getSubDeploymentName()  
+
+
+               cd('/JMSSystemResources/'+token+'/JMSResource/'+token+'/ConnectionFactories/'+token2+'/TransactionParams/'+token2)
+               xaEnabled          = str(get('XAConnectionFactoryEnabled'))
+               transactionTimeout = get('TransactionTimeout')
+               
+               print >>f, ";".join(map(quote, [domain+'/'+token+":"+token2,token,jndiname,subdeployment,defaultTargeting,xaEnabled,transactionTimeout,domain]))
+        
+f.close()
+print "~~~~COMMAND SUCCESFULL~~~~"
+
