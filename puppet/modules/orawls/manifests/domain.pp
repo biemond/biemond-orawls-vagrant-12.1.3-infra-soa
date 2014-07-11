@@ -365,19 +365,22 @@ define orawls::domain (
       # File[$apps_dir] -> Exec["execwlst ${domain_name} ${title}"]
     }
 
-    if ( $version == 1212 or $version == 1213 ) {
+    # FMW RCU only for wls 12.1.2 or higher and when template is not standard
+    if ( $version >= 1212 and $domain_template != 'standard' ) {
+
       if ( $domain_template == 'adf' ) {
         $rcu_domain_template = 'adf'
-      } elsif ( $domain_template == 'soa' or $domain_template == 'osb' or $domain_template == 'osb_soa_bpm' or $domain_template == 'osb_soa' or $domain_template == 'soa_bpm' ){
+
+      } elsif ( $domain_template in ['soa','osb','osb_soa_bpm','osb_soa','soa_bpm'] ){
         $rcu_domain_template = 'soa'
+
       } else {
         fail("unkown domain_template for rcu with version 1212 or 1213") 
       }
 
       # only works for a 12c middleware home
       # creates RCU for ADF
-      if ( $rcu_database_url == undefined or $repository_sys_password == undefined or $repository_password == undefined or $repository_prefix == undefined ) 
-      {
+      if ( $rcu_database_url == undefined or $repository_sys_password == undefined or $repository_password == undefined or $repository_prefix == undefined ){
         fail("Not all RCU parameters are provided")
       }
 
