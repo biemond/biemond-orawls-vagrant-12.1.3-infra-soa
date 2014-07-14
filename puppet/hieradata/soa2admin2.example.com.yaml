@@ -71,7 +71,7 @@ domain_instances:
     repository_prefix:        "DEV"
     repository_password:      "Welcome01"
     repository_sys_password:  "Welcome01"
-    rcu_database_url:         "soadb.example.com:1521:soarepos"
+    rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
 # create and startup the nodemanager
 nodemanager_instances:
