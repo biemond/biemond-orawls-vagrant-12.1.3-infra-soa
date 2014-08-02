@@ -24,7 +24,8 @@ Dependency with
 - reidmv/yamlfile >=0.2.0
 
 ##History
-- 1.0.11 target,targettype on all wls types expects an array instead of a string with ',' String will still work but puppet will try to change it in every puppet run same for servers parameter on wls_domain type + users parameter on wls_group type + virtualhostnames parameter on wls_virtual_host + jndinames, extraproperties, extrapropertiesvalues parameters on wls_datasource + wlsextraproperties, extrapropertiesvalues parameters on wls_foreign_server 
+- 1.0.12 12.1.3 FMW XA datasource fixes, 11g option to associate WebTier with a domain
+- 1.0.11 OSB 12.1.3 Cluster support + FMW domains update for datasources based on servicetable, target & targettype on all wls types expects an array, same for servers parameter on wls_domain type + users parameter on wls_group type + virtualhostnames parameter on wls_virtual_host + jndinames, extraproperties, extrapropertiesvalues parameters on wls_datasource & wls_foreign_server 
 - 1.0.10 fixed WebLogic 12.1.2 & 12.1.3 standard domain bug.
 - 1.0.9 WebLogic 12.1.3 (infra) support - support for 12.1.3 SOA,OSB,B2B,MFT installation - 12.1.3 Standard, ADF, SOA, OSB domain (no cluster) - wls_adminserver type fix when using no custom trust
 - 1.0.8 wls_server pass server arguments as an array, as it makes it easier to use references in YAML, Added log file options to wls_server 
@@ -44,7 +45,7 @@ see the following usages below
 
 - WebLogic 12.1.3 Reference implementation, the vagrant test case for full working WebLogic 12.1.3 cluster example [biemond-orawls-vagrant-12.1.3](https://github.com/biemond/biemond-orawls-vagrant-12.1.3) 
 - WebLogic 12.1.3 infra (JRF), the vagrant test case for full working WebLogic 12.1.3 infra cluster example with WebTier (Oracle HTTP Server) [biemond-orawls-vagrant-12.1.3-infra](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra)
-- WebLogic 12.1.3 infra with OSB, the vagrant test case for full working WebLogic 12.1.3 infra OSB example [biemond-orawls-vagrant-12.1.3-infra-osb](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-osb)
+- WebLogic 12.1.3 infra with OSB, the vagrant test case for full working WebLogic 12.1.3 infra OSB cluster example [biemond-orawls-vagrant-12.1.3-infra-osb](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-osb)
 - WebLogic 12.1.3 infra with OSB & SOA,ESS,BAM, the vagrant test case for full working WebLogic 12.1.3 infra OSB SOA example [biemond-orawls-vagrant-12.1.3-infra-soa](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-soa)   
 - WebLogic 12.1.2 Reference implementation, the vagrant test case for full working WebLogic 12.1.2 cluster example [biemond-orawls-vagrant-12.1.2](https://github.com/biemond/biemond-orawls-vagrant-12.1.2)   
 - WebLogic 12.1.2 infra (JRF) with WebTier, the vagrant test case for full working WebLogic 12.1.2 infra cluster example with WebTier (Oracle HTTP Server) [biemond-orawls-vagrant-12.1.2-infra](https://github.com/biemond/biemond-orawls-vagrant-12.1.2-infra) 
@@ -1416,11 +1417,11 @@ __orawls::oud::control__ Stop or start an OUD (Oracle Unified Directory) ldap in
 
 ##Types and providers
 
-It needs wls_setting and you need to create one for every domain. When domain is not provided on the type it will use the default entry.
+All wls types needs a wls_setting definition, this is a pointer to an WebLogic AdminServer and you need to create one for every WebLogic domain. When you don't provide a wls_setting identifier in the title of the weblogic type then it will use default as identifier.
 
 ###wls_setting
 
-required for all the weblogic type/providers
+required for all the weblogic type/providers, this is a pointer to an WebLogic AdminServer.
 
       wls_setting { 'default':
         user               => 'oracle',
@@ -1439,14 +1440,13 @@ required for all the weblogic type/providers
         post_classpath:     "/opt/oracle/wlsdomains/domains/Wls1036/lib/aa.jar"
       }
 
-
-
 ###wls_domain
 
-it needs wls_setting and when domain is not provided it will use the 'default'. Probably you need to restart the AdminServer or subscribe with the wls_adminserver type
+it needs wls_setting and when identifier is not provided it will use the 'default'. Probably after changing the domain you need to restart the AdminServer or subscribe for a restart to this change with the wls_adminserver type
 
 or use puppet resource wls_domain
 
+    # In this case it will use default as wls_setting identifier
     wls_domain { 'Wls1036':
       ensure                      => 'present',
       jpa_default_provider        => 'org.eclipse.persistence.jpa.PersistenceProvider',
@@ -1460,6 +1460,7 @@ or use puppet resource wls_domain
       log_rotationtype            => 'bySize',
       security_crossdomain        => '0',
     }
+    # In this case it will use domain2 as wls_setting identifier
     wls_domain { 'domain2/Wls11g':
       ensure                      => 'present',
       jpa_default_provider        => 'org.apache.openjpa.persistence.PersistenceProviderImpl',
@@ -1481,8 +1482,10 @@ in hiera
     $wls_domain_instances = hiera('wls_domain_instances', {})
     create_resources('wls_domain',$wls_domain_instances, $default_params)
 
+    # 'Wls1036' will use default as wls_setting identifier
+    # 'Wls11g' will use domain2 as wls_setting identifier
     wls_domain_instances:
-      'Wls1036':
+      'Wls1036':      
         ensure:                      'present'
         jpa_default_provider:        'org.eclipse.persistence.jpa.PersistenceProvider'
         jta_max_transactions:        '20000'
@@ -1514,7 +1517,8 @@ type for adminserver control like start, running, abort and stop.
 also supports subscribe with refreshonly
 
 
-    wls_adminserver{'Wls1036:AdminServer':
+    # for this type you won't need a wls_setting identifier
+    wls_adminserver{'AdminServer_Wls1036:':
       ensure                    => 'running',   #running|start|abort|stop 
       server_name               => hiera('domain_adminserver'),
       domain_name               => hiera('domain_name'),
@@ -1532,7 +1536,8 @@ also supports subscribe with refreshonly
 
 with JSSE and custom trust
 
-    wls_adminserver{'Wls1036:AdminServer':
+    # for this type you won't need a wls_setting identifier
+    wls_adminserver{'AdminServer_Wls1036:':
       ensure                    => 'running',   #running|start|abort|stop 
       server_name               => hiera('domain_adminserver'),
       domain_name               => hiera('domain_name'),
@@ -1552,7 +1557,8 @@ with JSSE and custom trust
 
 subscribe to a wls_domain or wls_authenticaton_provider event 
 
-    wls_adminserver{'Wls1036:AdminServer':
+    # for this type you won't need a wls_setting identifier
+    wls_adminserver{'AdminServer_Wls1036:':
       ensure                    => 'running',   #running|start|abort|stop 
       server_name               => hiera('domain_adminserver'),
       domain_name               => hiera('domain_name'),
@@ -1578,7 +1584,8 @@ type for managed server control like start, running, abort and stop a managed se
 also supports subscribe with refreshonly
 
 
-    wls_managedserver{'Wls1036:JMSServer1':
+    # for this type you won't need a wls_setting identifier
+    wls_managedserver{'JMSServer1_Wls1036:':
       ensure                    => 'running',   #running|start|abort|stop 
       target                    => 'Server', #Server|Cluster
       server_name               => 'JMSServer1',
@@ -1595,7 +1602,8 @@ also supports subscribe with refreshonly
 
 subscribe to a wls_domain or wls_authenticaton_provider event 
 
-    wls_managedserver{'Wls1036:JMSServer1':
+    # for this type you won't need a wls_setting identifier
+    wls_managedserver{'JMSServer1_Wls1036':
       ensure                    => 'running',   #running|start|abort|stop 
       target                    => 'Server',    #Server|Cluster
       server_name               => 'JMSServer1',
@@ -1614,10 +1622,11 @@ subscribe to a wls_domain or wls_authenticaton_provider event
 
 ###wls_deployment
 
-it needs wls_setting and when domain is not provided it will use the 'default'
-
+it needs wls_setting and when identifier is not provided it will use the 'default'.  
 or use puppet resource wls_deployment
 
+
+    # 'jersey-bundle' will use default as wls_setting identifier
     wls_deployment { 'jersey-bundle':
       ensure            => 'present',
       deploymenttype    => 'Library',
@@ -1626,6 +1635,7 @@ or use puppet resource wls_deployment
       versionidentifier => '1.18@1.18.0.0',
       localpath         =>  '/vagrant/jersey-bundle-1.18.war',
     }
+    # this will use default as wls_setting identifier
     wls_deployment { 'webapp':
       ensure            => 'present',
       deploymenttype    => 'AppDeployment',
@@ -1636,6 +1646,7 @@ or use puppet resource wls_deployment
 
 or add a version
 
+    # this will use default as wls_setting identifier
     wls_deployment { 'webapp':
       ensure            => 'present',
       deploymenttype    => 'AppDeployment',
@@ -1652,6 +1663,7 @@ in hiera
     $deployment_instances = hiera('deployment_library_instances', $default_params)
     create_resources('wls_deployment',$deployment_instances, $default_params)
 
+    # this will use default as wls_setting identifier
     deployment_library_instances:
       'jersey-bundle':
         ensure:            'present'
@@ -1669,6 +1681,7 @@ in hiera
     $deployment_instances = hiera('deployment_application_instances', $default_params)
     create_resources('wls_deployment',$deployment_instances, $default_params)
 
+    # this will use default as wls_setting identifier
     deployment_application_instances:
       'webapp':
         ensure:            'present'
@@ -1685,23 +1698,25 @@ in hiera
 
 ###wls_user
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.  
 
 or use puppet resource wls_user
 
+    # this will use default as wls_setting identifier
     wls_user { 'OracleSystemUser':
       ensure                 => 'present',
       authenticationprovider => 'DefaultAuthenticator',
       description            => 'Oracle application software system user.',
       realm                  => 'myrealm',
     }
+    # this will use default as wls_setting identifier
     wls_user { 'default/testuser1':
       ensure                 => 'present',
       authenticationprovider => 'DefaultAuthenticator',
       description            => 'testuser1',
       realm                  => 'myrealm',
     }
-
+    # this will use domain2 as wls_setting identifier
     wls_user { 'domain2/testuser1':
       ensure                 => 'present',
       authenticationprovider => 'DefaultAuthenticator',
@@ -1716,7 +1731,8 @@ in hiera
     $user_instances = hiera('user_instances', {})
     create_resources('wls_user',$user_instances, $default_params)
 
-
+    # testuser1 will use default as wls_setting identifier
+    # testuser2 will use domain2 as wls_setting identifier
     user_instances:
       'testuser1':
         ensure:                 'present'
@@ -1733,10 +1749,11 @@ in hiera
 
 ###wls_group
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.  
 
 or use puppet resource wls_group
 
+    # this will use default as wls_setting identifier
     wls_group { 'SuperUsers':
       ensure                 => 'present',
       authenticationprovider => 'DefaultAuthenticator',
@@ -1744,6 +1761,7 @@ or use puppet resource wls_group
       realm                  => 'myrealm',
       users                  => ['testuser2'],
     }
+    # this will use default as wls_setting identifier
     wls_group { 'TestGroup':
       ensure                 => 'present',
       authenticationprovider => 'DefaultAuthenticator',
@@ -1758,6 +1776,7 @@ in hiera
     $group_instances = hiera('group_instances', {})
     create_resources('wls_group',$group_instances, $default_params)
 
+    # this will use default as wls_setting identifier
     group_instances:
       'TestGroup':
         ensure:                 'present'
@@ -1777,16 +1796,19 @@ in hiera
 
 ###wls_authentication_provider
 
-it needs wls_setting and when domain is not provided it will use the 'default' and probably needs a reboot or subscribe with the wls_adminserver type
+it needs wls_setting and when identifier is not provided it will use the 'default' and probably after the creation the AdminServer needs a reboot or subscribe to a restart with the wls_adminserver type
 
 only control_flag is a property, the rest are parameters and only used in a create action
 
 or use puppet resource wls_authentication_provider
 
+
+    # this will use default as wls_setting identifier
     wls_authentication_provider { 'DefaultAuthenticator':
       ensure       => 'present',
       control_flag => 'SUFFICIENT',
     }
+    # this will use default as wls_setting identifier
     wls_authentication_provider { 'ldap':
       ensure            => 'present',
       control_flag      => 'SUFFICIENT',
@@ -1803,6 +1825,7 @@ in hiera
     create_resources('wls_authentication_provider',$authentication_provider_instances, $default_params)
 
 
+    # this will use default as wls_setting identifier
     authentication_provider_instances:
       'DefaultAuthenticator':
         ensure:             'present'
@@ -1818,29 +1841,32 @@ in hiera
 
 ###wls_machine
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.  
 
 or use puppet resource wls_machine
 
-      wls_machine { 'test2':
-        ensure        => 'present',
-        listenaddress => '10.10.10.10',
-        listenport    => '5556',
-        machinetype   => 'UnixMachine',
-        nmtype        => 'SSL',
-      }
-
-      wls_machine { 'domain2/test2':
-        ensure        => 'present',
-        listenaddress => '10.10.10.10',
-        listenport    => '5556',
-        machinetype   => 'UnixMachine',
-        nmtype        => 'SSL',
-      }
+    # this will use default as wls_setting identifier
+    wls_machine { 'test2':
+      ensure        => 'present',
+      listenaddress => '10.10.10.10',
+      listenport    => '5556',
+      machinetype   => 'UnixMachine',
+      nmtype        => 'SSL',
+    }
+    # this will use domain2 as wls_setting identifier
+    wls_machine { 'domain2/test2':
+      ensure        => 'present',
+      listenaddress => '10.10.10.10',
+      listenport    => '5556',
+      machinetype   => 'UnixMachine',
+      nmtype        => 'SSL',
+    }
 
 
 in hiera
 
+    # Node1 will use default as wls_setting identifier
+    # Node2 will use domain2 as wls_setting identifier
     machines_instances:
       'Node1':
         ensure:         'present'
@@ -1858,10 +1884,11 @@ in hiera
 
 ###wls_server
 
-it needs wls_setting and when domain is not provided it will use the 'default' and probably needs a reboot
+it needs wls_setting and when identifier is not provided it will use the 'default'.  
 
 or use puppet resource wls_server
 
+    # this will use default as wls_setting identifier
     wls_server { 'wlsServer1':
       ensure                            => 'present',
       arguments                         => '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer1.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer1_err.out',
@@ -1874,6 +1901,7 @@ or use puppet resource wls_server
 
 or with log parameters and ssl
 
+    # this will use default as wls_setting identifier
     wls_server { 'default/wlsServer2':
       ensure                            => 'present',
       arguments                         => '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer2.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer2_err.out',
@@ -1894,6 +1922,7 @@ or with log parameters and ssl
 
 or with JSSE with custom identity and trust
 
+    # this will use domain2 as wls_setting identifier
     wls_server { 'domain2/wlsServer2':
       ensure                                => 'present',
       arguments                             => '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer2.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer2_err.out',
@@ -1922,6 +1951,7 @@ or with JSSE with custom identity and trust
 
 in hiera
 
+    # this will use default as wls_setting identifier
     server_instances:
       'wlsServer1':
          ensure:                         'present'
@@ -1937,6 +1967,7 @@ in hiera
 
 or with log parameters
 
+    # this will use default as wls_setting identifier
     server_instances:
       'wlsServer1':
         ensure:                         'present'
@@ -1963,6 +1994,7 @@ You can also pass server arguments as an array, as it makes it easier to use ref
     server_vm_args_memory:        &server_vm_args_memory       '-Xms752m' 
     server_vm_args_max_memory:    &server_vm_args_max_memory   '-Xmx752m' 
 
+    # this will use default as wls_setting identifier
     server_instances:
       'wlsServer1':
         ensure:                                'present'
@@ -2007,6 +2039,7 @@ or with custom identity and custom truststore
     wls_trust_keystore_passphrase:     &wls_trust_keystore_passphrase 'welcome'
 
 
+    # this will use default as wls_setting identifier
     server_instances:
       'wlsServer1':
         ensure:                                'present'
@@ -2030,10 +2063,11 @@ or with custom identity and custom truststore
  
 ###wls_server_channel
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the server name    
+it needs wls_setting and when identifier is not provided it will use the 'default', the title must also contain the server name    
 
 or use puppet resource wls_server_channel
 
+    # this will use default as wls_setting identifier
     wls_server_channel { 'wlsServer1:Channel-Cluster':
       ensure           => 'present',
       enabled          => '1',
@@ -2045,6 +2079,7 @@ or use puppet resource wls_server_channel
       publicaddress    => '10.10.10.100',
       tunnelingenabled => '0',
     }
+    # this will use default as wls_setting identifier
     wls_server_channel { 'wlsServer2:Channel-Cluster':
       ensure           => 'present',
       enabled          => '1',
@@ -2057,6 +2092,7 @@ or use puppet resource wls_server_channel
 
 in hiera
 
+    # this will use default as wls_setting identifier
     server_channel_instances:
       'wlsServer1:Channel-Cluster':
         ensure:           'present'
@@ -2080,32 +2116,34 @@ in hiera
 
 ###wls_cluster
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_cluster
 
-      wls_cluster { 'WebCluster':
-        ensure           => 'present',
-        messagingmode    => 'unicast',
-        migrationbasis   => 'consensus',
-        servers          => ['wlsServer3','wlsServer4'],
-        multicastaddress => '239.192.0.0',
-        multicastport    => '7001',
-      }
-
-      wls_cluster { 'WebCluster2':
-        ensure                  => 'present',
-        messagingmode           => 'unicast',
-        migrationbasis          => 'consensus',
-        servers                 => ['wlsServer3','wlsServer4'],
-        unicastbroadcastchannel => 'channel',
-        multicastaddress        => '239.192.0.0',
-        multicastport           => '7001',
-      }
+    # this will use default as wls_setting identifier
+    wls_cluster { 'WebCluster':
+      ensure           => 'present',
+      messagingmode    => 'unicast',
+      migrationbasis   => 'consensus',
+      servers          => ['wlsServer3','wlsServer4'],
+      multicastaddress => '239.192.0.0',
+      multicastport    => '7001',
+    }
+    # this will use default as wls_setting identifier
+    wls_cluster { 'WebCluster2':
+      ensure                  => 'present',
+      messagingmode           => 'unicast',
+      migrationbasis          => 'consensus',
+      servers                 => ['wlsServer3','wlsServer4'],
+      unicastbroadcastchannel => 'channel',
+      multicastaddress        => '239.192.0.0',
+      multicastport           => '7001',
+    }
 
 in hiera
 
-     cluster_instances:
+    # this will use default as wls_setting identifier
+    cluster_instances:
       'WebCluster':
         ensure:         'present'
         messagingmode:  'unicast'
@@ -2116,10 +2154,11 @@ in hiera
 
 ###wls_virtual_host
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_virtual_host
 
+    # this will use default as wls_setting identifier
     wls_virtual_host { 'default/WS':
       ensure             => 'present',
       channel            => 'HTTP',
@@ -2130,6 +2169,7 @@ or use puppet resource wls_virtual_host
 
 in hiera
 
+    # this will use default as wls_setting identifier
     virtual_host_instances:
      'WS':
        ensure:     'present'
@@ -2144,10 +2184,11 @@ in hiera
 
 ###wls_workmanager_constaint
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_workmanager_constaint
 
+    # this will use default as wls_setting identifier
     wls_workmanager_constraint { 'default/CapacityConstraint':
       ensure          => 'present',
       constrainttype  => 'Capacity',
@@ -2155,6 +2196,7 @@ or use puppet resource wls_workmanager_constaint
       target          => ['WebCluster'],
       targettype      => ['Cluster'],
     }
+    # this will use default as wls_setting identifier
     wls_workmanager_constraint { 'default/MaxThreadsConstraint':
       ensure          => 'present',
       constrainttype  => 'MaxThreadsConstraint',
@@ -2162,6 +2204,7 @@ or use puppet resource wls_workmanager_constaint
       target          => ['WebCluster'],
       targettype      => ['Cluster'],
     }
+    # this will use default as wls_setting identifier
     wls_workmanager_constraint { 'default/MinThreadsConstraint':
       ensure          => 'present',
       constrainttype  => 'MinThreadsConstraint',
@@ -2172,6 +2215,7 @@ or use puppet resource wls_workmanager_constaint
 
 in hiera
 
+    # this will use default as wls_setting identifier
     workmanager_constraint_instances:
       'CapacityConstraint':
         ensure:          'present'
@@ -2200,10 +2244,11 @@ in hiera
 
 ###wls_workmanager
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_workmanager
 
+    # this will use default as wls_setting identifier
     wls_workmanager { 'WorkManagerConstraints':
       ensure               => 'present',
       capacity             => 'CapacityConstraint',
@@ -2216,6 +2261,7 @@ or use puppet resource wls_workmanager
 
 in hiera
 
+    # this will use default as wls_setting identifier
     workmanager_instances:
       'WorkManagerConstraints':
         ensure:                'present'
@@ -2232,22 +2278,25 @@ in hiera
 
 ###wls_file_persistence_store
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_file_persistence_store
 
+    # this will use default as wls_setting identifier
     wls_file_persistence_store { 'jmsFile1':
       ensure     => 'present',
       directory  => 'persistence1',
       target     => ['wlsServer1'],
       targettype => ['Server'],
     }
+    # this will use default as wls_setting identifier
     wls_file_persistence_store { 'jmsFile2':
       ensure     => 'present',
       directory  => 'persistence2',
       target     => ['wlsServer2'],
       targettype => ['Server'],
     }
+    # this will use default as wls_setting identifier
     wls_file_persistence_store { 'jmsFileSAFAgent1':
       ensure     => 'present',
       directory  => 'persistenceSaf1',
@@ -2257,6 +2306,7 @@ or use puppet resource wls_file_persistence_store
 
 in hiera
 
+    # this will use default as wls_setting identifier
     file_persistence_store_instances:
       'jmsFile1':
         ensure:         'present'
@@ -2283,11 +2333,12 @@ in hiera
 
 ###wls_safagent
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_safagent
 
 
+    # this will use default as wls_setting identifier
     wls_safagent { 'jmsSAFAgent1':
       ensure              => 'present',
       persistentstore     => 'jmsFileSAFAgent1',
@@ -2296,7 +2347,7 @@ or use puppet resource wls_safagent
       target              => ['wlsServer1'],
       targettype          => ['Server'],
     }
-
+    # this will use default as wls_setting identifier
     wls_safagent { 'jmsSAFAgent2':
       ensure      => 'present',
       servicetype => 'Both',
@@ -2306,31 +2357,33 @@ or use puppet resource wls_safagent
 
 in hiera
 
+    # this will use default as wls_setting identifier
     safagent_instances:
-    'jmsSAFAgent1':
-          ensure:              'present'
-          target:              
-            - 'wlsServer1'
-          targettype:          
-            - 'Server'
-          servicetype:         'Sending-only'
-          persistentstore:     'jmsFileSAFAgent1'
-          persistentstoretype: 'FileStore'
-    'jmsSAFAgent2':
-          ensure:              'present'
-          target:              
-            - 'wlsServer2'
-          targettype:          
-            - 'Server'
-          servicetype:         'Both'
+      'jmsSAFAgent1':
+            ensure:              'present'
+            target:              
+              - 'wlsServer1'
+            targettype:          
+              - 'Server'
+            servicetype:         'Sending-only'
+            persistentstore:     'jmsFileSAFAgent1'
+            persistentstoretype: 'FileStore'
+      'jmsSAFAgent2':
+            ensure:              'present'
+            target:              
+              - 'wlsServer2'
+            targettype:          
+              - 'Server'
+            servicetype:         'Both'
 
 
 ###wls_jmsserver
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_jmsserver
 
+    # this will use default as wls_setting identifier
     wls_jmsserver { 'jmsServer1':
       ensure              => 'present',
       persistentstore     => 'jmsFile1',
@@ -2338,11 +2391,13 @@ or use puppet resource wls_jmsserver
       target              => ['wlsServer1'],
       targettype          => ['Server'],
     }
+    # this will use default as wls_setting identifier
     wls_jmsserver { 'jmsServer2':
       ensure     => 'present',
       target     => ['wlsServer2'],
       targettype => ['Server'],
     }
+    # this will use default as wls_setting identifier
     wls_jmsserver { 'jmsServer3':
       ensure     => 'present',
       target     => ['wlsServer3'],
@@ -2352,6 +2407,7 @@ or use puppet resource wls_jmsserver
 
 in hiera
 
+    # this will use default as wls_setting identifier
     jmsserver_instances:
        jmsServer1:
          ensure:              'present'
@@ -2371,10 +2427,11 @@ in hiera
 
 ###wls_datasource
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_datasource
 
+    # this will use default as wls_setting identifier
     wls_datasource { 'hrDS':
       ensure                     => 'present',
       drivername                 => 'oracle.jdbc.xa.client.OracleXADataSource',
@@ -2391,6 +2448,7 @@ or use puppet resource wls_datasource
       user                       => 'hr',
       usexa                      => '1',
     }
+    # this will use default as wls_setting identifier
     wls_datasource { 'jmsDS':
       ensure                     => 'present',
       drivername                 => 'com.mysql.jdbc.Driver',
@@ -2408,6 +2466,8 @@ or use puppet resource wls_datasource
 
 in hiera
 
+
+    # this will use default as wls_setting identifier
     datasource_instances:
         'hrDS':
           ensure:                      'present'
@@ -2453,10 +2513,11 @@ in hiera
 
 ###wls_jms_module
 
-it needs wls_setting and when domain is not provided it will use the 'default'
+it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_jms_module
 
+    # this will use default as wls_setting identifier
     wls_jms_module { 'jmsClusterModule':
       ensure     => 'present',
       target     => ['WebCluster'],
@@ -2465,6 +2526,7 @@ or use puppet resource wls_jms_module
 
 in hiera
 
+    # this will use default as wls_setting identifier
     jms_module_instances:
        jmsClusterModule:
          ensure:      'present'
@@ -2476,7 +2538,7 @@ in hiera
 
 ###wls_connection_factory
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_connection_factory
 
@@ -2518,7 +2580,7 @@ in hiera
 
 ###wls_jms_queue
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_jms_queue
 
@@ -2603,7 +2665,7 @@ in hiera
 
 ###wls_jms_topic
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_jms_topic
 
@@ -2639,7 +2701,7 @@ in hiera
 
 ###wls_jms_quota
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_jms_quota
 
@@ -2678,7 +2740,7 @@ in hiera
 
 ###wls_jms_subdeployment
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_jms_subdeployment
 
@@ -2714,7 +2776,7 @@ in hiera
 
 ###wls_saf_remote_context
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_saf_remote_context
 
@@ -2745,7 +2807,7 @@ in hiera
 
 ###wls_saf_error_handler
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_saf_error_handler
 
@@ -2772,7 +2834,7 @@ in hiera
 
 ###wls_saf_imported_destination
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name  
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name  
 
 or use puppet resource wls_saf_imported_destination
 
@@ -2813,7 +2875,7 @@ in hiera
 
 ###wls_saf_imported_destination_object
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name and imported_destination 
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name and imported_destination 
 
 or use puppet resource wls_saf_imported_destination_object
 
@@ -2855,7 +2917,7 @@ in hiera
 
 ###wls_foreign_server
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name 
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name 
 
 or use puppet resource wls_foreign_server
 
@@ -2901,7 +2963,7 @@ in hiera
 
 ###wls_foreign_server_object
 
-it needs wls_setting and when domain is not provided it will use the 'default', title must also contain the jms module name and foreign server 
+it needs wls_setting and when identifier is not provided it will use the 'default', title must also contain the jms module name and foreign server 
 
 or use puppet resource wls_foreign_server_object
 
