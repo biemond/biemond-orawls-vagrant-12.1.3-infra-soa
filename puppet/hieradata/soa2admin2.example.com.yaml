@@ -95,3 +95,16 @@ userconfig_instances:
      log_output:           *logoutput
      user_config_dir:      '/home/oracle'
 
+fmwlogdir_instances:
+  'AdminServer':
+     log_output:      true
+     server:          'AdminServer'
+  'soa_server1':
+     log_output:      true
+     server:          'soa_server1'
+  'bam_server1':
+     log_output:      true
+     server:          'bam_server1'
+  'osb_server1':
+     log_output:      true
+     server:          'osb_server1'
