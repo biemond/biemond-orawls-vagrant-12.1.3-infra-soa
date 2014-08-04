@@ -95,16 +95,117 @@ userconfig_instances:
      log_output:           *logoutput
      user_config_dir:      '/home/oracle'
 
+
+# fmw cluster 
+fmw_cluster_instances:
+  'soaCluster':
+    domain_name:          "soa_domain"
+    soa_cluster_name:     "SoaCluster"
+    bam_cluster_name:     "BamCluster"
+    osb_cluster_name:     "OsbCluster"
+    log_output:           *logoutput
+    bpm_enabled:          true
+    bam_enabled:          true
+    soa_enabled:          true
+    osb_enabled:          true
+    b2b_enabled:          true
+    ess_enabled:          true
+    repository_prefix:    "DEV"
+
 fmwlogdir_instances:
   'AdminServer':
      log_output:      true
      server:          'AdminServer'
-  'soa_server1':
+  'SoaServer1':
      log_output:      true
-     server:          'soa_server1'
-  'bam_server1':
+     server:          'SoaServer1'
+  'BamServer1':
      log_output:      true
-     server:          'bam_server1'
-  'osb_server1':
+     server:          'BamServer1'
+  'OsbServer1':
      log_output:      true
-     server:          'osb_server1'
+     server:          'OsbServer1'
+
+machines_instances:
+  'Node1':
+    ensure:         'present'
+    listenaddress:  '10.10.10.21'
+    listenport:     '5556'
+    machinetype:    'UnixMachine'
+    nmtype:         'SSL'
+
+managed_servers_instances:
+      'SoaServer1':
+         ensure:                                'present'
+         arguments:                             
+           - '-XX:PermSize=256m'
+           - '-XX:MaxPermSize=752m'
+           - '-Xms752m'
+           - '-Xmx1524m'
+           - '-Dweblogic.Stdout=/var/log/weblogic/SoaServer1.out'
+           - '-Dweblogic.Stderr=/var/log/weblogic/SoaServer1_err.out'
+         listenaddress:                         '10.10.10.21'
+         listenport:                            '8001'
+         logfilename:                           '/var/log/weblogic/SoaServer1.log'
+         machine:                               'Node1'
+         sslenabled:                            '1'
+         ssllistenport:                         '8002'
+         sslhostnameverificationignored:        '1'
+         jsseenabled:                           '1' 
+      'BamServer1':
+         ensure:                                'present'
+         arguments:                             
+           - '-XX:PermSize=256m'
+           - '-XX:MaxPermSize=752m'
+           - '-Xms752m'
+           - '-Xmx1524m'
+           - '-Dweblogic.Stdout=/var/log/weblogic/BamServer1.out'
+           - '-Dweblogic.Stderr=/var/log/weblogic/BamServer1_err.out'
+         listenaddress:                         '10.10.10.21'
+         listenport:                            '9001'
+         logfilename:                           '/var/log/weblogic/BamServer1.log'
+         machine:                               'Node1'
+         sslenabled:                            '1'
+         ssllistenport:                         '9002'
+         sslhostnameverificationignored:        '1'
+         jsseenabled:                           '1' 
+      'OsbServer1':
+         ensure:                                'present'
+         arguments:                             
+           - '-XX:PermSize=256m'
+           - '-XX:MaxPermSize=512m'
+           - '-Xms752m'
+           - '-Xmx1024m'
+           - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer1.out'
+           - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer1_err.out'
+         listenaddress:                         '10.10.10.21'
+         listenport:                            '8011'
+         logfilename:                           '/var/log/weblogic/OsbServer1.log'
+         machine:                               'Node1'
+         sslenabled:                            '1'
+         ssllistenport:                         '8012'
+         sslhostnameverificationignored:        '1'
+         jsseenabled:                           '1' 
+
+
+# create cluster and assign the managed servers
+cluster_instances:
+      'SoaCluster':
+        ensure:         'present'
+        messagingmode:  'unicast'
+        migrationbasis: 'consensus'
+        servers:        
+          - 'SoaServer1'
+      'BamCluster':
+        ensure:         'present'
+        messagingmode:  'unicast'
+        migrationbasis: 'consensus'
+        servers:        
+          - 'BamServer1'
+      'OsbCluster':
+        ensure:         'present'
+        messagingmode:  'unicast'
+        migrationbasis: 'consensus'
+        servers:        
+          - 'OsbServer1'
+
