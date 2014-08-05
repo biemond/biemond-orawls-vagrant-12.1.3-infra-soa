@@ -1,4 +1,4 @@
-#WebLogic 12.1.3 infra (JRF) with SOA,OSB
+#WebLogic 12.1.3 infra (JRF) with SOA, BAM, OSB Cluster
 
 with OSB & SOA with BPM, BAM, B2B & Enterprise schedular 
 
