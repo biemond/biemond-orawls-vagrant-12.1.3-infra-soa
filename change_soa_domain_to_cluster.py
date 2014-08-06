@@ -1,18 +1,18 @@
 
-WLHOME         ='<%= @weblogic_home_dir %>'
-DOMAIN_PATH    ='<%= @domain_dir %>'
+WLHOME         = '/opt/oracle/middleware12c/wlserver'
+DOMAIN_PATH    = '/opt/oracle/wlsdomains/domains/soa_domain'
 
-bpmEnabled     = <%= @bpm_enabled %>
-bamEnabled     = <%= @bam_enabled %>
-soaEnabled     = <%= @soa_enabled %>
-osbEnabled     = <%= @osb_enabled %>
-b2bEnabled     = <%= @b2b_enabled %>
-essEnabled     = <%= @ess_enabled %>
+bpmEnabled     = true
+bamEnabled     = true
+soaEnabled     = true
+osbEnabled     = true
+b2bEnabled     = true
+essEnabled     = true
 
-SOAClusterName = '<%= @soa_cluster_name %>'
-BAMClusterName = '<%= @bam_cluster_name %>'
-OSBClusterName = '<%= @osb_cluster_name %>'
-Admin          = '<%= @adminserver_name %>'
+SOAClusterName = 'SoaCluster'
+BAMClusterName = 'BamCluster'
+OSBClusterName = 'OsbCluster'
+Admin          = 'AdminServer'
 
 AllClustersArray = []
 if bamEnabled == true:
