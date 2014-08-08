@@ -19,9 +19,9 @@ ADMIN_PASSWORD = 'weblogic1'
 JAVA_HOME      = '/usr/java/latest'
 
 ADM_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=512m -Xms1024m -Xmx1532m -Dweblogic.Stdout='+LOG_FOLDER+'AdminServer.out -Dweblogic.Stderr='+LOG_FOLDER+'AdminServer_err.out'
-OSB_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=512m -Xms1024m -Xmx1024m -Dweblogic.Stdout='+LOG_FOLDER+'osb_server1.out -Dweblogic.Stderr='+LOG_FOLDER+'osb_server1_err.out'
-SOA_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=752m -Xms1024m -Xmx1532m -Dweblogic.Stdout='+LOG_FOLDER+'soa_server1.out -Dweblogic.Stderr='+LOG_FOLDER+'soa_server1_err.out'
-BAM_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=512m -Xms1024m -Xmx1532m -Dweblogic.Stdout='+LOG_FOLDER+'bam_server1.out -Dweblogic.Stderr='+LOG_FOLDER+'bam_server1_err.out'
+OSB_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=512m -Xms1024m -Xmx1024m '
+SOA_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=752m -Xms1024m -Xmx1532m '
+BAM_JAVA_ARGUMENTS = '-XX:PermSize=256m -XX:MaxPermSize=512m -Xms1024m -Xmx1532m '
 
 
 SOA_REPOS_DBURL          = 'jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com'
@@ -51,6 +51,49 @@ def createAdminStartupPropertiesFile(directoryPath, args):
   fileNew.write('Arguments=%s\n' % args)
   fileNew.flush()
   fileNew.close()
+
+def changeDatasourceToXA(datasource):
+  print 'Change datasource '+datasource
+  cd('/')
+  cd('/JDBCSystemResource/'+datasource+'/JdbcResource/'+datasource+'/JDBCDriverParams/NO_NAME_0')
+  set('DriverName','oracle.jdbc.xa.client.OracleXADataSource')
+  set('UseXADataSourceInterface','True') 
+  cd('/JDBCSystemResource/'+datasource+'/JdbcResource/'+datasource+'/JDBCDataSourceParams/NO_NAME_0')
+  set('GlobalTransactionsProtocol','TwoPhaseCommit')
+  cd('/')
+
+def changeManagedServer(server,port,java_arguments):
+  cd('/Servers/'+server)
+  set('Machine'      ,'LocalMachine')
+  set('ListenAddress',SERVER_ADDRESS)
+  set('ListenPort'   ,port)
+
+  create(server,'ServerStart')
+  cd('ServerStart/'+server)
+  set('Arguments' , java_arguments+' -Dweblogic.Stdout='+LOG_FOLDER+server+'.out -Dweblogic.Stderr='+LOG_FOLDER+server+'_err.out')
+  set('JavaVendor','Sun')
+  set('JavaHome'  , JAVA_HOME)
+
+  cd('/Server/'+server)
+  create(server,'SSL')
+  cd('SSL/'+server)
+  set('Enabled'                    , 'False')
+  set('HostNameVerificationIgnored', 'True')
+
+  if JSSE_ENABLED == true:
+    set('JSSEEnabled','True')
+  else:
+    set('JSSEEnabled','False')  
+
+  cd('/Server/'+server)
+  create(server,'Log')
+  cd('/Server/'+server+'/Log/'+server)
+  set('FileName'     , LOG_FOLDER+server+'.log')
+  set('FileCount'    , 10)
+  set('FileMinSize'  , 5000)
+  set('RotationType' ,'byTime')
+  set('FileTimeSpan' , 24)
+
 
 print('Start...wls domain with template /opt/oracle/middleware12c/wlserver/common/templates/wls/wls.jar')
 readTemplate('/opt/oracle/middleware12c/wlserver/common/templates/wls/wls.jar')
@@ -193,43 +236,43 @@ set('Value',SOA_REPOS_DBUSER_PREFIX+'_STB')
 print 'Call getDatabaseDefaults which reads the service table'
 getDatabaseDefaults()    
 
-print 'Change datasource EDNDataSource'
-cd('/JDBCSystemResource/EDNDataSource/JdbcResource/EDNDataSource/JDBCDriverParams/NO_NAME_0')
-set('DriverName','oracle.jdbc.xa.client.OracleXADataSource')
-set('UseXADataSourceInterface','True') 
-cd('/JDBCSystemResource/EDNDataSource/JdbcResource/EDNDataSource/JDBCDataSourceParams/NO_NAME_0')
-set('GlobalTransactionsProtocol','TwoPhaseCommit')
-
-print 'Change datasource wlsbjmsrpDataSource'
-cd('/JDBCSystemResource/wlsbjmsrpDataSource/JdbcResource/wlsbjmsrpDataSource/JDBCDriverParams/NO_NAME_0')
-set('DriverName','oracle.jdbc.xa.client.OracleXADataSource')
-set('UseXADataSourceInterface','True') 
-cd('/JDBCSystemResource/wlsbjmsrpDataSource/JdbcResource/wlsbjmsrpDataSource/JDBCDataSourceParams/NO_NAME_0')
-set('GlobalTransactionsProtocol','TwoPhaseCommit')
-
-print 'Change datasource OraSDPMDataSource'
-cd('/JDBCSystemResource/OraSDPMDataSource/JdbcResource/OraSDPMDataSource/JDBCDriverParams/NO_NAME_0')
-set('DriverName','oracle.jdbc.xa.client.OracleXADataSource')
-set('UseXADataSourceInterface','True') 
-cd('/JDBCSystemResource/OraSDPMDataSource/JdbcResource/OraSDPMDataSource/JDBCDataSourceParams/NO_NAME_0')
-set('GlobalTransactionsProtocol','TwoPhaseCommit')
-
-print 'Change datasource SOADataSource'
-cd('/JDBCSystemResource/SOADataSource/JdbcResource/SOADataSource/JDBCDriverParams/NO_NAME_0')
-set('DriverName','oracle.jdbc.xa.client.OracleXADataSource')
-set('UseXADataSourceInterface','True') 
-cd('/JDBCSystemResource/SOADataSource/JdbcResource/SOADataSource/JDBCDataSourceParams/NO_NAME_0')
-set('GlobalTransactionsProtocol','TwoPhaseCommit')
+changeDatasourceToXA('EDNDataSource')
+changeDatasourceToXA('wlsbjmsrpDataSource')
+changeDatasourceToXA('OraSDPMDataSource')
+changeDatasourceToXA('SOADataSource')
 
 if BAM_ENABLED == true:
-  print 'Change datasource BamDataSource'
-  cd('/JDBCSystemResource/BamDataSource/JdbcResource/BamDataSource/JDBCDriverParams/NO_NAME_0')
-  set('DriverName','oracle.jdbc.xa.client.OracleXADataSource')
-  set('UseXADataSourceInterface','True') 
-  cd('/JDBCSystemResource/BamDataSource/JdbcResource/BamDataSource/JDBCDataSourceParams/NO_NAME_0')
-  set('GlobalTransactionsProtocol','TwoPhaseCommit')
+  changeDatasourceToXA('BamDataSource')
 
 print 'end datasources'
+
+
+print('Create machine LocalMachine with type UnixMachine')
+cd('/')
+create('LocalMachine','UnixMachine')
+cd('UnixMachine/LocalMachine')
+create('LocalMachine','NodeManager')
+cd('NodeManager/LocalMachine')
+set('ListenAddress',SERVER_ADDRESS)
+
+print 'Change AdminServer'
+cd('/Servers/'+ADMIN_SERVER)
+set('Machine','LocalMachine')
+
+
+print 'change soa_server1'
+cd('/')
+changeManagedServer('soa_server1',8001,SOA_JAVA_ARGUMENTS)
+
+if BAM_ENABLED == true:
+  print 'change bam_server1'
+  cd('/')
+  changeManagedServer('bam_server1',9001,BAM_JAVA_ARGUMENTS)
+
+print 'change osb_server1'
+cd('/')
+changeManagedServer('osb_server1',8011,OSB_JAVA_ARGUMENTS)
+
 
 print 'Add server groups WSM-CACHE-SVR WSMPM-MAN-SVR JRF-MAN-SVR to AdminServer'
 serverGroup = ["WSM-CACHE-SVR" , "WSMPM-MAN-SVR" , "JRF-MAN-SVR"]
@@ -259,137 +302,6 @@ print 'end server groups'
 
 updateDomain()
 closeDomain();
-
-
-readDomain(DOMAIN_PATH)
-
-if BAM_ENABLED == true:
-  print 'change BAM/BPM ForeignJNDIProviders'
-  cd('/')
-  cd('/ForeignJNDIProvider/BAMForeignJndiProvider')
-  set('ProviderURL','t3://'+SERVER_ADDRESS+':9001')
-
-  cd('/ForeignJNDIProvider/BPMForeignJndiProvider')
-  set('ProviderURL','t3://'+SERVER_ADDRESS+':8001')
-  print 'end BAM/BPM ForeignJNDIProviders'
-
-print('Create machine LocalMachine with type UnixMachine')
-cd('/')
-create('LocalMachine','UnixMachine')
-cd('UnixMachine/LocalMachine')
-create('LocalMachine','NodeManager')
-cd('NodeManager/LocalMachine')
-set('ListenAddress',SERVER_ADDRESS)
-
-print 'Change AdminServer'
-cd('/Servers/'+ADMIN_SERVER)
-set('Machine','LocalMachine')
-
-
-print 'Change soa_server1'
-
-setOption( "AppDir", APP_PATH )
-
-cd('/Servers/soa_server1')
-set('Machine'      ,'LocalMachine')
-set('ListenAddress',SERVER_ADDRESS)
-set('ListenPort'   ,8001)
-
-create('soa_server1','ServerStart')
-cd('ServerStart/soa_server1')
-set('Arguments' , SOA_JAVA_ARGUMENTS)
-set('JavaVendor','Sun')
-set('JavaHome'  , JAVA_HOME)
-
-cd('/Server/soa_server1')
-create('soa_server1','SSL')
-cd('SSL/soa_server1')
-set('Enabled'                    , 'False')
-set('HostNameVerificationIgnored', 'True')
-
-if JSSE_ENABLED == true:
-  set('JSSEEnabled','True')
-else:
-  set('JSSEEnabled','False')
-
-cd('/Server/soa_server1')
-create('soa_server1','Log')
-cd('/Server/soa_server1/Log/soa_server1')
-set('FileName'     , LOG_FOLDER+'soa_server1.log')
-set('FileCount'    , 10)
-set('FileMinSize'  , 5000)
-set('RotationType' ,'byTime')
-set('FileTimeSpan' , 24)
-
-if BAM_ENABLED == true:
-  print 'Change bam_server1'
-  cd('/Servers/bam_server1')
-  set('Machine'      ,'LocalMachine')
-  set('ListenAddress',SERVER_ADDRESS)
-  set('ListenPort'   ,9001)
-
-  create('bam_server1','ServerStart')
-  cd('ServerStart/bam_server1')
-  set('Arguments' , BAM_JAVA_ARGUMENTS)
-  set('JavaVendor','Sun')
-  set('JavaHome'  , JAVA_HOME)
-
-  cd('/Server/bam_server1')
-  create('bam_server1','SSL')
-  cd('SSL/bam_server1')
-  set('Enabled'                    , 'False')
-  set('HostNameVerificationIgnored', 'True')
-
-  if JSSE_ENABLED == true:
-    set('JSSEEnabled','True')
-  else:
-    set('JSSEEnabled','False')
-
-  cd('/Server/bam_server1')
-  create('bam_server1','Log')
-  cd('/Server/bam_server1/Log/bam_server1')
-  set('FileName'    ,LOG_FOLDER+'bam_server1.log')
-  set('FileCount'   ,10)
-  set('FileMinSize' ,5000)
-  set('RotationType','byTime')
-  set('FileTimeSpan',24)
-
-
-print 'Change osb_server1'
-cd('/Servers/osb_server1')
-set('Machine'      ,'LocalMachine')
-set('ListenAddress',SERVER_ADDRESS)
-set('ListenPort'   ,8011)
-
-create('osb_server1','ServerStart')
-cd('ServerStart/osb_server1')
-set('Arguments' , OSB_JAVA_ARGUMENTS)
-set('JavaVendor','Sun')
-set('JavaHome'  , JAVA_HOME)
-
-cd('/Server/osb_server1')
-create('osb_server1','SSL')
-cd('SSL/osb_server1')
-set('Enabled'                    , 'False')
-set('HostNameVerificationIgnored', 'True')
-
-if JSSE_ENABLED == true:
-  set('JSSEEnabled','True')
-else:
-  set('JSSEEnabled','False')
-
-cd('/Server/osb_server1')
-create('osb_server1','Log')
-cd('/Server/osb_server1/Log/osb_server1')
-set('FileName'    ,LOG_FOLDER+'osb_server1.log')
-set('FileCount'   ,10)
-set('FileMinSize' ,5000)
-set('RotationType','byTime')
-set('FileTimeSpan',24)
-
-dumpStack()
-updateDomain()
-closeDomain()
 
 createBootPropertiesFile(DOMAIN_PATH+'/servers/soa_server1/security','boot.properties',ADMIN_USER,ADMIN_PASSWORD)
 
