@@ -43,7 +43,7 @@ module EasyType
     # @return [Boolean] true if it exsist, false if it doesn't exist
     #
     def exists?
-      @property_hash[:ensure] == :present
+      not @property_hash[:ensure].nil?
     end
 
     #
@@ -55,8 +55,8 @@ module EasyType
     #
     def create
       @property_flush = @resource
-      @property_hash[:ensure] = :present
-      command = build_from_type(resource.method(:on_create))
+      @property_hash[:ensure] ||= :present
+      command = build_from_type(:on_create)
       command.execute
       @property_flush = {}
     end
@@ -67,7 +67,7 @@ module EasyType
     #  - The on_destroy value of the Type
     #
     def destroy
-      command = build_from_type(resource.method(:on_destroy))
+      command = build_from_type(:on_destroy)
       command.execute
       @property_hash.clear
       @property_flush = {}
@@ -82,7 +82,7 @@ module EasyType
     #
     def flush
       if @property_flush && @property_flush != {}
-        command = build_from_type(resource.method(:on_modify))
+        command = build_from_type(:on_modify)
         command.execute
       end
     end
@@ -90,14 +90,25 @@ module EasyType
     private
 
     # @private
-    def build_from_type(block)
+    def build_from_type(action)
+      type_method = resource.method(action)
       command_builder = ScriptBuilder.new(:binding => resource, :acceptable_commands => resource.commands)
-      line = block.call(command_builder)
+      line = type_method.call(command_builder)
       command_builder.add(line)
+
       resource.properties.each do | prop |
-        command_builder << "#{prop.on_apply command_builder} " if should_be_in_command(prop)
+        statement = "#{property_statement(prop, action, command_builder)} " if should_be_in_command(prop)
+        command_builder << statement unless statement == " "
       end
       command_builder
+    end
+
+    def property_statement(property, action, command_builder)
+      if property.respond_to?(action)
+        property.send(action, command_builder)
+      elsif property.respond_to?('on_apply')
+        property.on_apply(command_builder)
+      end
     end
 
     ##
@@ -106,7 +117,7 @@ module EasyType
     # and when it is modified e.g. in de @property_flush
     #
     def should_be_in_command(property)
-      modified_and_defined?(property) || in_a_modified_group?(property)
+      modified?(property) || in_a_modified_group?(property)
     end
 
     # @private
@@ -126,8 +137,8 @@ module EasyType
     end
 
     # @private
-    def modified_and_defined?(property)
-      defined?(property.on_apply) && @property_flush[property.name]
+    def modified?(property)
+      not @property_flush[property.name].nil?
     end
 
     # nodoc
@@ -195,7 +206,7 @@ module EasyType
         non_meta_parameter_classes.each do | parameter_class |
           resource[parameter_class.name] = parameter_class.translate_to_resource(raw_resource) if translation?(parameter_class)
         end
-        resource[:ensure] = :present
+        resource[:ensure] ||= :present
         new(resource)
       end
 

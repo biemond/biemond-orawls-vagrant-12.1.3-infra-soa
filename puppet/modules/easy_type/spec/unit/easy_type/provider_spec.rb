@@ -33,23 +33,24 @@ describe 'the provider' do
 		end
 
 		it "returns valid puppet resources" do
-			expect(subject.instances[0].class).to eq Puppet::Type::Test 
+			expect(subject.instances[0].class).to eq Puppet::Type::Test
 		end
 
 		it "returns all specfied valid puppet resources" do
-			expect(subject.instances.length).to eq 2 
+			expect(subject.instances.length).to eq 2
 		end
 	end
 
 	describe "basic resource methods" do
 
-		let(:resource) { 
+		let(:resource) {
 			Puppet::Type::Test.new(
-				:name => 'a_test', 
+				:name => 'a_test',
 				:ensure => 'present',
 				:my_property => 'my stuff',
 				:first_in_group => 'YES! I am first',
-				:second_in_group => 'YES! I am second'
+				:second_in_group => 'YES! I am second',
+				:property_without_on_apply => 'I won\'t apply'
 			)}
 
 		describe "create" do
@@ -59,10 +60,16 @@ describe 'the provider' do
 				resource.provider.create
 			end
 
-			it "calls on_apply on the properties" do
+			it "calls on_apply on the properties where on_apply is defined" do
 				expect_any_instance_of(Puppet::Type::Test::My_property).to receive(:on_apply).and_call_original
 				resource.provider.create
 			end
+
+			it "calls on_create on the properties where on_create is defined" do
+				expect_any_instance_of(Puppet::Type::Test::Property_without_on_apply).to receive(:on_create).and_call_original
+				resource.provider.create
+			end
+
 
 		end
 
@@ -72,6 +79,7 @@ describe 'the provider' do
 				expect_any_instance_of(subject).to receive(:on_destroy).and_call_original
 				resource.provider.destroy
 			end
+
 		end
 
 		describe "modify" do
@@ -84,7 +92,7 @@ describe 'the provider' do
 					resource.provider.flush
 				end
 
-				it "calls on_apply on the modified propertie" do
+				it "calls on_apply on the modified property" do
 					resource.provider.my_property = "changed"
 					expect_any_instance_of(Puppet::Type::Test::My_property).to receive(:on_apply).and_call_original
 					resource.provider.flush
@@ -119,6 +127,11 @@ describe 'the provider' do
 				end
 			end
 
+			it "calls on_modify on the properties where on_modify is defined" do
+				resource.provider.property_without_on_apply = "changed"
+				expect_any_instance_of(Puppet::Type::Test::Property_without_on_apply).to receive(:on_modify).and_call_original
+				resource.provider.flush
+			end
 
 		end
 

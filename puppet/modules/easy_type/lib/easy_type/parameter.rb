@@ -34,7 +34,65 @@ module EasyType
       # @see on_modify  For information on modifying an existing resource
       #
       def on_apply(&block)
+        fail_if_competing_method_defined
         define_method(:on_apply, &block) if block
+      end
+
+      # @nodoc
+      def fail_if_competing_method_defined
+        ['on_create','on_modify', 'on_destroy'].each do | method_name |
+          fail "method #{method_name} can not coexist with on_apply. Use one or the other" if called_before(method_name)
+        end
+      end
+
+      def called_before(method_name)
+        self.method_defined? method_name
+      end
+
+      #
+      # retuns the string needed to create this specific property of a defined type. This
+      # method is **ONLY** called when the resource is created. It is not allowed to have
+      # both an `on_apply` and a `on_create` definition on the type.
+      #
+      # @example
+      #
+      #  newproperty(:password) do
+      #    on_create do
+      #      "identified by #{resource[:password]}"
+      #    end
+      #  end
+      #
+      # @param [Method] block The code to be run on creating a resource. Although the code
+      #                 customary returns just a string that is appended to the command, it can do
+      #                 anything that is deemed nesceccary.
+      #
+      # @see on_create on the type for information on creating a resource
+      #
+      def on_create(&block)
+        define_method(:on_create, &block) if block
+      end
+
+      #
+      # retuns the string needed to modify this specific property of a defined type. This
+      # method is **ONLY** called when the resource is modified. It is not allowed to have
+      # both an `on_apply` and a `on_destroy` definition on the type.
+      #
+      # @example
+      #
+      #  newproperty(:password) do
+      #    on_modify do
+      #      "identified by #{resource[:password]}"
+      #    end
+      #  end
+      #
+      # @param [Method] block The code to be run modifying a resource. Although the code
+      #                 customary returns just a string that is appended to the command, it can do
+      #                 anything that is deemed nesceccary.
+      #
+      # @see on_modify on the type for information on modifying an existing resource
+      #
+      def on_modify(&block)
+        define_method(:on_modify, &block) if block
       end
 
       #

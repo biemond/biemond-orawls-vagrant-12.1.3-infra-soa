@@ -50,3 +50,20 @@ shared_examples "a block with acceptable commands passed" do
 		expect(subject.entries.size).to be >= 1
 	end
 end
+
+
+shared_examples "an event method" do | method_name|
+
+	describe ".#{method_name}" do
+
+		before do
+			Test.class_eval("#{method_name} {'done'}")
+		end
+
+		subject { Test.new}
+
+		it "adds a instance method #{method_name} on the property" do
+			expect( subject.send("#{method_name}")).to eql('done')
+		end
+	end
+end

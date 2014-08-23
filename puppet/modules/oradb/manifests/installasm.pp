@@ -4,7 +4,7 @@
 define oradb::installasm(
   $version                 = undef,
   $file                    = undef,
-  $gridType                = 'HA_CONFIG',
+  $gridType                = 'HA_CONFIG', #CRS_CONFIG|HA_CONFIG|UPGRADE|CRS_SWONLY
   $gridBase                = undef,
   $gridHome                = undef,
   $oraInventoryDir         = undef,
@@ -27,8 +27,12 @@ define oradb::installasm(
 )
 {
 
-  if (!( $version == '11.2.0.4')){
-    fail('Unrecognized database grid install version, use 11.2.0.4')
+  $file_without_ext = regsubst($file, '(.+?)(\.zip*$|$)', '\1')
+  #notify {"oradb::installasm file without extension ${$file_without_ext} ":}
+
+
+  if (!( $version in ['11.2.0.4','12.1.0.1'] )){
+    fail('Unrecognized database grid install version, use 11.2.0.4 or 12.1.0.1')
   }
 
   if ( !($::kernel in ['Linux','SunOS'])){
@@ -85,32 +89,65 @@ define oradb::installasm(
     if ( $zipExtract ) {
       # In $downloadDir, will Puppet extract the ZIP files or is this a pre-extracted directory structure.
 
+      if ( $version == '12.1.0.1') {
+        $file1 =  "${file}_1of2.zip"
+        $file2 =  "${file}_2of2.zip"
+      }
+      if ( $version  == '11.2.0.4' ) {
+        $file1 =  $file
+      }
+
       if $remoteFile == true {
 
-        file { "${downloadDir}/${file}":
+        file { "${downloadDir}/${file1}":
           ensure      => present,
-          source      => "${mountPoint}/${file}",
+          source      => "${mountPoint}/${file1}",
           mode        => '0775',
           owner       => $user,
           group       => $group,
           require     => Oradb::Utils::Dbstructure["grid structure ${version}"],
-          before      => Exec["extract ${downloadDir}/${file}"],
+          before      => Exec["extract ${downloadDir}/${file1}"],
         }
+
+        if ( $version == '12.1.0.1' ) {
+          file { "${downloadDir}/${file2}":
+            ensure      => present,
+            source      => "${mountPoint}/${file2}",
+            mode        => '0775',
+            owner       => $user,
+            group       => $group,
+            require     => File["${downloadDir}/${file1}"],
+            before      => Exec["extract ${downloadDir}/${file2}"]
+          }
+        }
+
         $source = $downloadDir
       } else {
         $source = $mountPoint
       }
 
-      exec { "extract ${downloadDir}/${file}":
-        command     => "unzip -o ${source}/${file} -d ${downloadDir}/grid_${version}",
+      exec { "extract ${downloadDir}/${file1}":
+        command     => "unzip -o ${source}/${file1} -d ${downloadDir}/${file_without_ext}",
         timeout     => 0,
         logoutput   => false,
         path        => $execPath,
         user        => $user,
         group       => $group,
-        creates     => "${downloadDir}/grid_${version}",
+        creates     => "${downloadDir}/${file_without_ext}",
         require     => Oradb::Utils::Dbstructure["grid structure ${version}"],
         before      => Exec["install oracle grid ${title}"],
+      }
+      if ( $version == '12.1.0.1' ) {
+        exec { "extract ${downloadDir}/${file2}":
+          command     => "unzip -o ${source}/${file2} -d ${downloadDir}/${file_without_ext}",
+          timeout     => 0,
+          logoutput   => false,
+          path        => $execPath,
+          user        => $user,
+          group       => $group,
+          require     => Exec["extract ${downloadDir}/${file1}"],
+          before      => Exec["install oracle grid ${title}"],
+        }
       }
     }
 
@@ -131,7 +168,7 @@ define oradb::installasm(
     }
 
     exec { "install oracle grid ${title}":
-      command     => "/bin/sh -c 'unset DISPLAY;${downloadDir}/grid_${version}/grid/runInstaller -silent -waitforcompletion -ignoreSysPrereqs -ignorePrereq -responseFile ${downloadDir}/grid_install_${version}.rsp'",
+      command     => "/bin/sh -c 'unset DISPLAY;${downloadDir}/${file_without_ext}/grid/runInstaller -silent -waitforcompletion -ignoreSysPrereqs -ignorePrereq -responseFile ${downloadDir}/grid_install_${version}.rsp'",
       creates     => $gridHome,
       timeout     => 0,
       returns     => [6,0],
@@ -173,27 +210,38 @@ define oradb::installasm(
       require   => Exec["install oracle grid ${title}"],
     }
 
-    file { "${downloadDir}/cfgrsp.properties":
-      ensure  => present,
-      content => template('oradb/grid_password.properties.erb'),
-      mode    => '0600',
-      owner   => $user,
-      group   => $group,
-      require => Exec["run root.sh grid script ${title}"],
-    }
+    if ( $gridType == 'CRS_SWONLY' ) {
+      exec { 'Configuring Grid Infrastructure for a Stand-Alone Server':
+        command   => "${gridHome}/perl/bin/perl -I${gridHome}/perl/lib -I${gridHome}/crs/install ${gridHome}/crs/install/roothas.pl",
+        user      => 'root',
+        group     => 'root',
+        path      => $execPath,
+        logoutput => true,
+        require   => Exec["run root.sh grid script ${title}"],
+      }
+    } else {
+      file { "${downloadDir}/cfgrsp.properties":
+        ensure  => present,
+        content => template('oradb/grid_password.properties.erb'),
+        mode    => '0600',
+        owner   => $user,
+        group   => $group,
+        require => Exec["run root.sh grid script ${title}"],
+      }
 
-    exec { "run configToolAllCommands grid tool ${title}":
-      command   => "${gridHome}/cfgtoollogs/configToolAllCommands RESPONSE_FILE=${downloadDir}/cfgrsp.properties",
-      user      => $user,
-      group     => $group_install,
-      path      => $execPath,
-      provider  => 'shell',
-      cwd       => "${gridHome}/cfgtoollogs",
-      logoutput => true,
-      require   => [File["${downloadDir}/cfgrsp.properties"],
-                    Exec["run root.sh grid script ${title}"],
-                    Exec["install oracle grid ${title}"],
-                    ],
+      exec { "run configToolAllCommands grid tool ${title}":
+        command   => "${gridHome}/cfgtoollogs/configToolAllCommands RESPONSE_FILE=${downloadDir}/cfgrsp.properties",
+        user      => $user,
+        group     => $group_install,
+        path      => $execPath,
+        provider  => 'shell',
+        cwd       => "${gridHome}/cfgtoollogs",
+        logoutput => true,
+        require   => [File["${downloadDir}/cfgrsp.properties"],
+                      Exec["run root.sh grid script ${title}"],
+                      Exec["install oracle grid ${title}"],
+                      ],
+      }
     }
 
   }

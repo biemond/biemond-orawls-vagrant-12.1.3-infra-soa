@@ -88,7 +88,6 @@ describe EasyType::ScriptBuilder do
 			end
 		end
 
-
 		context "some commands entered" do
 
 			let(:object) do
@@ -113,8 +112,9 @@ describe EasyType::ScriptBuilder do
 
 			let(:object) {described_class.new(options)}
 
-			it "raises an exception" do
-				expect{subject}.to raise_error
+			it "Show's a debug message for this situation" do
+				expect(Puppet).to receive(:debug)
+				subject
 			end
 		end
 
@@ -287,8 +287,9 @@ describe EasyType::ScriptBuilder do
 
 			let(:object) {described_class.new(options)}
 
-			it "raises an exception" do
-				expect{subject}.to raise_error
+			it "Show's a debug message for this situation" do
+				expect(Puppet).to receive(:debug)
+				subject
 			end
 		end
 
@@ -319,8 +320,9 @@ describe EasyType::ScriptBuilder do
 
 			let(:object) {described_class.new(options)}
 
-			it "raises an exception" do
-				expect{subject}.to raise_error
+			it "Show's a debug message for this situation" do
+				expect(Puppet).to receive(:debug)
+				subject
 			end
 		end
 

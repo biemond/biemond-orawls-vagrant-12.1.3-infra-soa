@@ -8,16 +8,20 @@ module EasyType
   # The Integer munger, munges a specified value to an Integer.
   #
   module Mungers
-    # @nodoc
-    module Integer
-      # @private
-      def unsafe_munge(value)
-        Integer(value)
-      end
-    end
 
+    [Integer, String, Array, Float].each do| klass|
+      module_eval(<<-END_RUBY, __FILE__, __LINE__)
+        # @nodoc
+        # @private
+        module #{klass}
+          def unsafe_munge(value)
+            #{klass}(value)
+          end
+        end
+      END_RUBY
+    end
     #
-    # The Integer munger, munges a specified value to an Integer.
+    # The Size munger, munges a specified value to an Integer.
     #
     module Size
       # @private
@@ -44,7 +48,9 @@ module EasyType
       end
     end
 
-    # @nodoc
+    #
+    # The Downcase munger, munges a specified value to an lowercase String
+    #
     module Downcase
       def unsafe_munge(string)
         string.downcase

@@ -35,14 +35,13 @@ module EasyType
     #
     #
     #
-    def initialize(identifier, command, user, timeout = TIMEOUT)
+    def initialize(identifier, command, user)
       if @@daemons[identifier]
         return @@daemons[identifier]
       else
         initialize_daemon(user, command)
         @identifier = identifier
         @@daemons[identifier] = self
-        @timeout = timeout
       end
     end
 
@@ -58,9 +57,9 @@ module EasyType
     # ,return the string '~~~~COMMAND SUCCESFULL~~~~'. If it failed, return the string '~~~~COMMAND FAILED~~~~'
     #
     #
-    def sync( &proc)
+    def sync( timeout = TIMEOUT, &proc)
       while true do
-        line = timed_readline
+        line = timed_readline(timeout)
         Puppet.debug "#{line}"
         break if line =~ SUCCESS_SYNC_STRING
         fail 'command in deamon failed.' if line =~ FAILED_SYNC_STRING
@@ -70,8 +69,8 @@ module EasyType
 
     private
 
-    def timed_readline
-      Timeout.timeout(@timeout) do
+    def timed_readline(timeout)
+      Timeout.timeout(timeout) do
         @stdout.readline
       end
       rescue Timeout::Error
@@ -95,6 +94,12 @@ module EasyType
         execute_command(command)
       else
         @stdin, @stdout, @stderr = Open3.popen3(command)
+      end
+      at_exit do
+        Puppet.debug "Quiting daemon #{@identifier}..."
+        @stdin.close
+        @stdout.close
+        @stderr.close
       end
     end
   end

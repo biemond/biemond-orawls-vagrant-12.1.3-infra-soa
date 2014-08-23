@@ -112,7 +112,7 @@ module EasyType
     def check_last_command
       unless last_command
         Puppet.debug 'no command specified'
-        throw(:no_last_command)
+        throw(:no_last_commands)
       end
     end
 

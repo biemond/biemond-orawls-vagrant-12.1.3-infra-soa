@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 group :development, :test do
   gem 'rake',    :require => false
+  gem 'rspec-its'
   platform :ruby_19, :ruby_20 do
     gem 'rubocop', :github => 'bbatsov/rubocop',  :require => false
     gem 'travis'
@@ -26,11 +27,11 @@ group :test do
     gem 'coveralls',               :require => false
     gem 'simplecov',               :require => false
   end
-    gem 'puppet-lint'
-    gem 'rspec-puppet', '~> 1.0.0'
-    gem 'rspec-system-puppet'
-    gem 'puppetlabs_spec_helper'
-    gem 'puppet-syntax'
+  gem 'puppet-lint'
+  gem 'rspec-puppet', '~> 1.0.0'
+  gem 'rspec-system-puppet'
+  gem 'puppetlabs_spec_helper'
+  gem 'puppet-syntax'
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']

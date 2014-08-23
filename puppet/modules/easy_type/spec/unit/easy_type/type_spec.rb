@@ -232,19 +232,19 @@ describe EasyType::Type do
     end
 
     it "defines a property" do
-      expect( defined?(Puppet::Type::Test::A_test)).to be_true
+      expect( defined?(Puppet::Type::Test::A_test)).to be_truthy
     end
 
     it "defines a parameter" do
-      expect( defined?(Puppet::Type::Test::ParameterB_test)).to be_true
+      expect( defined?(Puppet::Type::Test::ParameterB_test)).to be_truthy
     end
 
     it "defines a property in the shared directory" do
-      expect( defined?(Puppet::Type::Test::Shared_one)).to be_true
+      expect( defined?(Puppet::Type::Test::Shared_one)).to be_truthy
     end
 
     it "adds a conveniance access method" do
-      pending
+      skip
     end
 
   end
@@ -282,11 +282,11 @@ describe EasyType::Type do
       end
 
       it "defines a parameter" do
-        expect( defined?(Puppet::Type::Test::ParameterB_test)).to be_true
+        expect( defined?(Puppet::Type::Test::ParameterB_test)).to be_truthy
       end
 
       it "defines a property" do
-        expect( defined?(Puppet::Type::Test::A_test)).to be_true
+        expect( defined?(Puppet::Type::Test::A_test)).to be_truthy
       end
 
       it "defines a type" do
@@ -294,11 +294,11 @@ describe EasyType::Type do
       end
 
       it "the group to include the parameter" do
-        expect( Puppet::Type::Test.groups.include_property?(Puppet::Type::Test::ParameterB_test)).to be_true
+        expect( Puppet::Type::Test.groups.include_property?(Puppet::Type::Test::ParameterB_test)).to be_truthy
       end
 
       it "the group to include the property" do
-        expect( Puppet::Type::Test.groups.include_property?(Puppet::Type::Test::A_test)).to be_true
+        expect( Puppet::Type::Test.groups.include_property?(Puppet::Type::Test::A_test)).to be_truthy
       end
 
 

@@ -66,6 +66,8 @@ module Puppet
       property :second_in_group
     end
 
+    property  :property_without_on_apply
+
   	provide(:simple) do
   		include EasyType::Provider
 		  mk_resource_methods

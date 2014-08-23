@@ -47,6 +47,6 @@ begin
     task.patterns = ['lib/easy_type/**/*.rb']
     task.fail_on_error = true
   end
-rescue LoadError
+rescue LoadError, NameError
 end
 

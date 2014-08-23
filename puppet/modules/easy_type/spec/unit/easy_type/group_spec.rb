@@ -16,7 +16,7 @@ describe EasyType::Group do
 			end
 
 			it "returns true" do
-				expect( subject ).to be_true
+				expect( subject ).to be_truthy
 			end
 		end
 
@@ -25,7 +25,7 @@ describe EasyType::Group do
 			let(:group) {:fake_group}
 
 			it "returns false" do
-				expect( subject).to be_false
+				expect( subject).to be_falsey
 			end
 		end
 	end
@@ -43,7 +43,7 @@ describe EasyType::Group do
 			let(:property) {Object}
 
 			it "returns true" do
-				expect(subject).to be_true
+				expect(subject).to be_truthy
 			end
 
 		end
@@ -52,7 +52,7 @@ describe EasyType::Group do
 			let(:property) { String}
 
 			it "returns false" do
-				expect(subject).to be_false
+				expect(subject).to be_falsey
 			end
 
 		end
@@ -65,11 +65,11 @@ describe EasyType::Group do
 		end
 
 		it "add's the group" do
-			expect(object.include?(:my_group)).to be_true 
+			expect(object.include?(:my_group)).to be_truthy 
 		end
 
 		it "add's the class" do
-			expect(object.include_property?(Float)).to be_true 
+			expect(object.include_property?(Float)).to be_truthy 
 		end
 
 	end	
