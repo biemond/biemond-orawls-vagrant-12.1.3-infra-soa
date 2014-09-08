@@ -3,7 +3,7 @@ require 'version_differentiator'
 
 # @nodoc
 class CommandEntry
-  attr_reader :command, :arguments, :context
+  attr_reader     :command, :arguments, :context
 
   # rubocop:disable ClassVars
   def self.set_binding(the_binding)
@@ -11,9 +11,10 @@ class CommandEntry
   end
   # rubocop:enable ClassVars
 
-  def initialize(command, arguments)
-    @command = command
-    @arguments = Array(arguments)
+  def initialize(command, arguments, options = {})
+    @command    = command
+    @arguments  = arguments.is_a?(Array) ? arguments : [arguments]
+    @options    = options
   end
 
   def execute
@@ -21,7 +22,7 @@ class CommandEntry
     ruby_18 { normalized_command = command.to_s }
     ruby_19 { normalized_command = command.to_sym }
     if @@binding.methods.include?(normalized_command)
-      @@binding.send(normalized_command, *normalized_arguments)
+      @@binding.send(normalized_command, normalized_arguments, @options)
     else
       full_command = arguments.dup.unshift(command).join(' ')
       Puppet::Util::Execution.execute(full_command, :failonfail => true)
@@ -31,10 +32,6 @@ class CommandEntry
   private
 
   def normalized_arguments
-    if arguments.length > 1
-      arguments.join(' ')
-    else
-      arguments
-    end
+    @arguments.is_a?(Array) ? @arguments.join(' ') : @arguments
   end
 end

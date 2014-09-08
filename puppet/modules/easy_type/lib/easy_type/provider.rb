@@ -94,8 +94,8 @@ module EasyType
       type_method = resource.method(action)
       command_builder = ScriptBuilder.new(:binding => resource, :acceptable_commands => resource.commands)
       line = type_method.call(command_builder)
+      fail "Easy_type usage error: on_xxx methods should return a nil or a string not a #{line.class.name}" unless [String,NilClass].include?(line.class)
       command_builder.add(line)
-
       resource.properties.each do | prop |
         statement = "#{property_statement(prop, action, command_builder)} " if should_be_in_command(prop)
         command_builder << statement unless statement == " "

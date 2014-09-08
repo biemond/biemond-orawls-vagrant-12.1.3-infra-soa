@@ -43,13 +43,13 @@ module EasyType
       entries(type).last
     end
 
-    def add(*args, &block)
+    def add(line, options = {}, &block)
       if block
-        add_to_queue(:main, &block)
-        nil
+        add_to_queue(:main, line, options, &block)
       else
-        entries(:main) << CommandEntry.new(default_command, args) unless args == [nil] # special case
+        entries(:main) << CommandEntry.new(default_command, line, options) unless line.nil? # special case
       end
+      nil
     end
 
     def <<(line)
@@ -57,6 +57,7 @@ module EasyType
         check_last_command
         last_command.arguments << line if line
       end
+      nil
     end
 
     #
@@ -90,12 +91,14 @@ module EasyType
       nil
     end
 
-    def before(line = nil, &block)
-      add_to_queue(:before, line, &block)
+    def before(line = nil, options = {}, &block)
+      add_to_queue(:before, line, options, &block)
+      nil
     end
 
-    def after(line = nil, &block)
-      add_to_queue(:after, line, &block)
+    def after(line = nil, options = {}, &block)
+      add_to_queue(:after, line, options, &block)
+      nil
     end
 
     def execute
@@ -116,10 +119,10 @@ module EasyType
       end
     end
 
-    def add_to_queue(queue, line, &block)
+    def add_to_queue(queue, line, options, &block)
       fail ArgumentError, 'block or line must be present' unless block || line
       if line
-        entries(queue) << CommandEntry.new(default_command, line)
+        entries(queue) << CommandEntry.new(default_command, line, options)
       else
         @context.type = queue
         @context.instance_eval(&block)

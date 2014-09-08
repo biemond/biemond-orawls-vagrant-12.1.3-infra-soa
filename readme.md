@@ -17,6 +17,7 @@ edit Vagrantfile and update the software share to your own local folder
 Vagrant boxes
 - vagrant up soadb
 - vagrant up soa2admin2
+- vagrant up mft1admin
 
 ## Database
 - soadb 10.10.10.5, 11.2.0.4 with Welcome01 as password
@@ -35,6 +36,7 @@ Vagrant boxes
 
 ### default soa osb domain with 1 node
 - soa2admin2 10.10.10.21, WebLogic 12.1.3 with Infra ( JRF, ADF, SOA, OSB ) requires RCU
+- oim1admin 10.10.10.71, WebLogic 12.1.3 with Infra ( MFT ) requires RCU
 
 http://10.10.10.21:7001/em with weblogic1 as password
 
@@ -49,4 +51,5 @@ http://10.10.10.21:7001/em with weblogic1 as password
 - fmw_12.1.3.0.0_infrastructure.jar
 - fmw_12.1.3.0.0_osb_Disk1_1of1.zip
 - fmw_12.1.3.0.0_soa_Disk1_1of1.zip
+- fmw_12.1.3.0.0_mft_Disk1_1of1.zip
 

@@ -261,7 +261,7 @@ describe EasyType::ScriptBuilder do
 		context "with an existing method in the binding" do
 
 
-			def hallo(line)
+			def hallo(line, options)
 				"#{line}\n"
 			end
 

@@ -10,6 +10,10 @@ hosts:
   'soa2admin2.example.com':
     ip:                "10.10.10.21"
     host_aliases:      'soa2admin2'
+  'mft1admin.example.com':
+    ip:                "10.10.10.71"
+    host_aliases:      'mft1admin'
+
 
 # global WebLogic vars
 wls_oracle_base_home_dir: &wls_oracle_base_home_dir "/opt/oracle"

@@ -40,6 +40,40 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   
   end
 
+  config.vm.define "mft1admin" , primary: true do |mft1admin|
+
+    mft1admin.vm.box = "centos-6.5-x86_64"
+    mft1admin.vm.box_url = "https://dl.dropboxusercontent.com/s/np39xdpw05wfmv4/centos-6.5-x86_64.box"
+
+    mft1admin.vm.hostname = "mft1admin.example.com"
+    mft1admin.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
+    mft1admin.vm.synced_folder "/Users/edwin/software", "/software"
+
+    mft1admin.vm.network :private_network, ip: "10.10.10.71"
+  
+    mft1admin.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "2548"]
+      vb.customize ["modifyvm", :id, "--name"  , "mft1admin"]
+      vb.customize ["modifyvm", :id, "--cpus"  , 2]
+    end
+  
+    mft1admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppet/hiera.yaml;rm -rf /etc/puppet/modules;ln -sf /vagrant/puppet/modules /etc/puppet/modules"
+    
+    mft1admin.vm.provision :puppet do |puppet|
+      puppet.manifests_path    = "puppet/manifests"
+      puppet.module_path       = "puppet/modules"
+      puppet.manifest_file     = "site.pp"
+      puppet.options           = "--verbose --hiera_config /vagrant/puppet/hiera.yaml"
+  
+      puppet.facter = {
+        "environment"    => "development",
+        "vm_type"        => "vagrant",
+      }
+      
+    end
+  
+  end
+
   config.vm.define "soadb" , primary: true do |soadb|
     soadb.vm.box = "centos-6.5-x86_64"
     soadb.vm.box_url = "https://dl.dropboxusercontent.com/s/np39xdpw05wfmv4/centos-6.5-x86_64.box"

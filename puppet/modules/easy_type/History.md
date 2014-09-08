@@ -1,6 +1,10 @@
 History
 ========
 
+01-09-2014  version 0.13.0
+--------------------------
+Added support for specifying a second option parameter on a command_builder. This is needed to support the Oracle SID's
+
 11-07-2014  version 0.12.2
 --------------------------
 Fixed a bug that caused OrwWls to fail.

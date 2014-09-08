@@ -1,4 +1,4 @@
-node 'soa2admin2.example.com' {
+node 'soa2admin2.example.com','mft1admin.example.com' {
 
   include os
   include java
@@ -155,8 +155,15 @@ class opatch{
   create_resources('orawls::opatch',$opatch_instances, $default_params)
 }
 
+class rcu{
+  require fmw,orawls::weblogic,opatch
+  $default_params = {}
+  $rcu_instances = hiera('rcu_instances', {})
+  create_resources('orawls::utils::rcu',$rcu_instances, $default_params)
+}
+
 class domains{
-  require orawls::weblogic, opatch
+  require orawls::weblogic,opatch,rcu
 
   $default_params = {}
   $domain_instances = hiera('domain_instances', {})
@@ -165,16 +172,16 @@ class domains{
   $domain_address = hiera('domain_adminserver_address')
   $domain_port    = hiera('domain_adminserver_port')
 
+  $version = hiera('wls_os_user')
   orautils::nodemanagerautostart{"autostart weblogic":
-    version     => hiera('wls_version'),
+    version     => "${version}",
     wlHome      => hiera('wls_weblogic_home_dir'),
     user        => hiera('wls_os_user'),
     jsseEnabled => true,
   }
 
-
   wls_setting { 'default':
-    user               => hiera('wls_os_user'),
+    user               => hiera('wls_version'),
     weblogic_home_dir  => hiera('wls_weblogic_home_dir'),
     connect_url        => "t3://${domain_address}:${domain_port}",
     weblogic_user      => hiera('wls_weblogic_user'),
