@@ -11,15 +11,15 @@ module Puppet
     include Utils::WlsAccess
     extend Utils::TitleParser
 
-    desc "This resource allows you to manage a datasource in an WebLogic domain."
+    desc 'This resource allows you to manage a datasource in an WebLogic domain.'
 
     ensurable
 
     set_command(:wlst)
-  
+
     to_get_raw_resources do
       Puppet.info "index #{name}"
-      environment = { "action"=>"index","type"=>"wls_datasource"}
+      environment = { 'action' => 'index', 'type' => 'wls_datasource' }
       wlst template('puppet:///modules/orawls/providers/wls_datasource/index.py.erb', binding), environment
     end
 
@@ -41,23 +41,25 @@ module Puppet
     parameter :domain
     parameter :name
     parameter :datasource_name
-
     parameter :password
-    property  :target
-    property  :targettype
-    property  :jndinames
-    property  :drivername
-    property  :url
-    property  :usexa
-    property  :user
-    property  :testtablename
-    property  :globaltransactionsprotocol
-    property  :extraproperties
-    property  :extrapropertiesvalues
-    property  :maxcapacity
-    property  :initialcapacity
 
-    add_title_attributes( :datasource_name) do 
+    property :target
+    property :targettype
+    property :jndinames
+    property :drivername
+    property :url
+    property :usexa
+    property :user
+    property :testtablename
+    property :globaltransactionsprotocol
+    property :extraproperties
+    property :extrapropertiesvalues
+    property :maxcapacity
+    property :initialcapacity
+    property :fanenabled
+    property :onsnodelist
+
+    add_title_attributes(:datasource_name) do
       /^((.*\/)?(.*)?)$/
     end
 

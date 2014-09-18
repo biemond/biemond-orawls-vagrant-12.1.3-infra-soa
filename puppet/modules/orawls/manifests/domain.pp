@@ -302,10 +302,26 @@ define orawls::domain (
 
     if !defined(File[$download_dir]) {
       file { $download_dir:
-          ensure  => directory,
-          mode    => '0775',
-          owner   => $os_user,
-          group   => $os_group,
+        ensure => directory,
+        mode   => '0775',
+        owner  => $os_user,
+        group  => $os_group,
+      }
+    }
+
+    # the utils.py used by the wlst
+    if !defined(File['utils.py']) {
+      file { 'utils.py':
+        ensure  => present,
+        path    => "${download_dir}/utils.py",
+        content => template('orawls/domains/utils.py.erb'),
+        replace => true,
+        backup  => false,
+        mode    => '0775',
+        owner   => $os_user,
+        group   => $os_group,
+        require => File[$download_dir],
+        before  => File["domain.py ${domain_name} ${title}"],
       }
     }
 
@@ -403,10 +419,11 @@ define orawls::domain (
 
     # create domain
     exec { "execwlst ${domain_name} ${title}":
-      command     => "${wlstPath}/wlst.sh ${download_dir}/domain_${domain_name}.py",
+      command     => "${wlstPath}/wlst.sh domain_${domain_name}.py",
       environment => ["JAVA_HOME=${jdk_home_dir}"],
       unless      => "/usr/bin/test -e ${domain_dir}",
       creates     => $domain_dir,
+      cwd         => $download_dir,
       require     => [File["domain.py ${domain_name} ${title}"],
                       File[$domains_dir]],
       timeout     => 0,
@@ -433,13 +450,13 @@ define orawls::domain (
       }
 
       exec { "exec PSA OPSS store upgrade ${domain_name} ${title}":
-        command     => "${middleware_home_dir}/oracle_common/bin/psa -response ${download_dir}/${title}psa_opss_upgrade.rsp",
-        require     => [Exec["execwlst ${domain_name} ${title}"],File["${download_dir}/${title}psa_opss_upgrade.rsp"],],
-        timeout     => 0,
-        cwd         => $download_dir, # Added since psa binary saves and changes to current dir
-        path        => $exec_path,
-        user        => $os_user,
-        group       => $os_group,
+        command => "${middleware_home_dir}/oracle_common/bin/psa -response ${download_dir}/${title}psa_opss_upgrade.rsp",
+        require => [Exec["execwlst ${domain_name} ${title}"],File["${download_dir}/${title}psa_opss_upgrade.rsp"],],
+        timeout => 0,
+        cwd     => $download_dir, # Added since psa binary saves and changes to current dir
+        path    => $exec_path,
+        user    => $os_user,
+        group   => $os_group,
       }
 
       exec { "execwlst create OPSS store ${domain_name} ${title}":

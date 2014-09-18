@@ -16,28 +16,28 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     soa2admin2.vm.synced_folder "/Users/edwin/software", "/software"
 
     soa2admin2.vm.network :private_network, ip: "10.10.10.21"
-  
+
     soa2admin2.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm", :id, "--memory", "5548"]
       vb.customize ["modifyvm", :id, "--name"  , "soa2admin2"]
       vb.customize ["modifyvm", :id, "--cpus"  , 2]
     end
-  
+
     soa2admin2.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppet/hiera.yaml;rm -rf /etc/puppet/modules;ln -sf /vagrant/puppet/modules /etc/puppet/modules"
-    
+
     soa2admin2.vm.provision :puppet do |puppet|
       puppet.manifests_path    = "puppet/manifests"
       puppet.module_path       = "puppet/modules"
       puppet.manifest_file     = "site.pp"
       puppet.options           = "--verbose --hiera_config /vagrant/puppet/hiera.yaml"
-  
+
       puppet.facter = {
         "environment"    => "development",
         "vm_type"        => "vagrant",
       }
-      
+
     end
-  
+
   end
 
   config.vm.define "mft1admin" , primary: true do |mft1admin|
@@ -50,28 +50,28 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     mft1admin.vm.synced_folder "/Users/edwin/software", "/software"
 
     mft1admin.vm.network :private_network, ip: "10.10.10.71"
-  
+
     mft1admin.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm", :id, "--memory", "2548"]
       vb.customize ["modifyvm", :id, "--name"  , "mft1admin"]
       vb.customize ["modifyvm", :id, "--cpus"  , 2]
     end
-  
+
     mft1admin.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppet/hiera.yaml;rm -rf /etc/puppet/modules;ln -sf /vagrant/puppet/modules /etc/puppet/modules"
-    
+
     mft1admin.vm.provision :puppet do |puppet|
       puppet.manifests_path    = "puppet/manifests"
       puppet.module_path       = "puppet/modules"
       puppet.manifest_file     = "site.pp"
       puppet.options           = "--verbose --hiera_config /vagrant/puppet/hiera.yaml"
-  
+
       puppet.facter = {
         "environment"    => "development",
         "vm_type"        => "vagrant",
       }
-      
+
     end
-  
+
   end
 
   config.vm.define "soadb" , primary: true do |soadb|
@@ -83,29 +83,29 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     soadb.vm.synced_folder "/Users/edwin/software", "/software"
 
     soadb.vm.network :private_network, ip: "10.10.10.5"
-  
+
     soadb.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm"     , :id, "--memory", "2548"]
       vb.customize ["modifyvm"     , :id, "--name"  , "soadb"]
       vb.customize ["modifyvm"     , :id, "--cpus"  , 2]
     end
 
-  
+
     soadb.vm.provision :shell, :inline => "ln -sf /vagrant/puppet/hiera.yaml /etc/puppet/hiera.yaml;rm -rf /etc/puppet/modules;ln -sf /vagrant/puppet/modules /etc/puppet/modules"
-    
+
     soadb.vm.provision :puppet do |puppet|
       puppet.manifests_path    = "puppet/manifests"
       puppet.module_path       = "puppet/modules"
       puppet.manifest_file     = "db.pp"
       puppet.options           = "--verbose --hiera_config /vagrant/puppet/hiera.yaml"
-  
+
       puppet.facter = {
         "environment" => "development",
         "vm_type"     => "vagrant",
       }
-      
+
     end
-  
+
   end
 
 end
