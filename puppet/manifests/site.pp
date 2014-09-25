@@ -123,9 +123,9 @@ class java {
   include jdk7
 
   jdk7::install7{ 'jdk1.7.0_55':
-      version                   => "7u55" , 
+      version                   => "7u55" ,
       fullVersion               => "jdk1.7.0_55",
-      alternativesPriority      => 18000, 
+      alternativesPriority      => 18000,
       x64                       => true,
       downloadDir               => "/var/tmp/install",
       urandomJavaFix            => true,
@@ -172,9 +172,14 @@ class domains{
   $domain_address = hiera('domain_adminserver_address')
   $domain_port    = hiera('domain_adminserver_port')
 
-  $version = hiera('wls_os_user')
+  $str_version  = hiera('wls_version')
+  $domains_path = hiera('wls_domains_dir')
+  $domain_name  = hiera('domain_name')
+
   orautils::nodemanagerautostart{"autostart weblogic":
-    version     => "${version}",
+    version     => "${str_version}",
+    domain      => $domain_name,
+    domainPath  => "${domains_path}/${domain_name}",
     wlHome      => hiera('wls_weblogic_home_dir'),
     user        => hiera('wls_os_user'),
     jsseEnabled => true,
@@ -205,11 +210,11 @@ class startwls {
 }
 
 class userconfig{
-  require orawls::weblogic, domains, nodemanager, startwls 
+  require orawls::weblogic, domains, nodemanager, startwls
   $default_params = {}
   $userconfig_instances = hiera('userconfig_instances', {})
   create_resources('orawls::storeuserconfig',$userconfig_instances, $default_params)
-} 
+}
 
 class machines{
   require userconfig
@@ -251,7 +256,7 @@ class fmw_log_dir {
   $default_params = {}
   $fmwlogdir_instances = hiera('fmwlogdir_instances', {})
   create_resources('orawls::fmwlogdir',$fmwlogdir_instances, $default_params)
-}  
+}
 
 class fmw_webtier {
   require fmw_log_dir
