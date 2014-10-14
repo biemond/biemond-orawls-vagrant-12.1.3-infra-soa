@@ -43,10 +43,10 @@ module Puppet
     parameter :jmsmodule
     parameter :foreign_server_name
     parameter :password
+    parameter :timeout
     property :subdeployment
     property :defaulttargeting
     property :extraproperties
-    property :extrapropertiesvalues
     property :initialcontextfactory
     property :connectionurl
 

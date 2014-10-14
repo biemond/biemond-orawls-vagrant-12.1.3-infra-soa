@@ -42,6 +42,7 @@ module Puppet
     parameter :name
     parameter :datasource_name
     parameter :password
+    parameter :timeout
 
     property :target
     property :targettype
@@ -53,7 +54,6 @@ module Puppet
     property :testtablename
     property :globaltransactionsprotocol
     property :extraproperties
-    property :extrapropertiesvalues
     property :maxcapacity
     property :initialcapacity
     property :fanenabled

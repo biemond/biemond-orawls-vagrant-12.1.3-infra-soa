@@ -177,7 +177,7 @@ SID = "<%= @dbName %>"
 # Default value : None
 # Mandatory     : No (Yes for RAC database-centric database )
 #-----------------------------------------------------------------------------
-#NODELIST=
+NODELIST=<%= @cluster_nodes %>
 
 #-----------------------------------------------------------------------------
 # Name          : TEMPLATENAME
@@ -562,7 +562,7 @@ TOTALMEMORY = "<%= @memoryTotal %>"
 # Default value : none
 # Mandatory     : YES
 #-----------------------------------------------------------------------------
-SOURCEDB = "myhost:1521:orcl"
+SOURCEDB = "myhost:<%= @dbPort %>:orcl"
 
 #-----------------------------------------------------------------------------
 # Name          : SYSDBAUSERNAME 
