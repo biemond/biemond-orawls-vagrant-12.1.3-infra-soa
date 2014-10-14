@@ -1,5 +1,8 @@
 ---
 
+wls_os_user:              &wls_os_user              "oracle"
+wls_weblogic_user:        &wls_weblogic_user        "weblogic"
+
 wls_weblogic_home_dir:    &wls_weblogic_home_dir    "/opt/oracle/middleware12c/wlserver"
 wls_middleware_home_dir:  &wls_middleware_home_dir  "/opt/oracle/middleware12c"
 wls_version:              &wls_version              1213
@@ -73,6 +76,15 @@ domain_instances:
     repository_sys_password:  "Welcome01"
     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
+wls_setting_instances:
+  'default':
+    user:               *wls_os_user
+    weblogic_home_dir:  *wls_weblogic_home_dir
+    connect_url:        "t3://10.10.10.21:7001"
+    weblogic_user:      *wls_weblogic_user
+    weblogic_password:  *domain_wls_password
+    require:            Orawls::Domain[soa_domain]
+
 # create and startup the nodemanager
 nodemanager_instances:
   'nodemanager':
@@ -116,15 +128,19 @@ fmwlogdir_instances:
   'AdminServer':
      log_output:      true
      server:          'AdminServer'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
   'SoaServer1':
      log_output:      true
      server:          'SoaServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
   'BamServer1':
      log_output:      true
      server:          'BamServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
   'OsbServer1':
      log_output:      true
      server:          'OsbServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
 
 machines_instances:
   'Node1':
@@ -134,7 +150,7 @@ machines_instances:
     machinetype:    'UnixMachine'
     nmtype:         'SSL'
 
-managed_servers_instances:
+server_instances:
       'SoaServer1':
          ensure:                                'present'
          arguments:                             
@@ -152,6 +168,7 @@ managed_servers_instances:
          ssllistenport:                         '8002'
          sslhostnameverificationignored:        '1'
          jsseenabled:                           '1' 
+         require:                               Wls_machine[Node1]
       'BamServer1':
          ensure:                                'present'
          arguments:                             
@@ -169,6 +186,7 @@ managed_servers_instances:
          ssllistenport:                         '9002'
          sslhostnameverificationignored:        '1'
          jsseenabled:                           '1' 
+         require:                               Wls_machine[Node1]
       'OsbServer1':
          ensure:                                'present'
          arguments:                             
@@ -186,7 +204,7 @@ managed_servers_instances:
          ssllistenport:                         '8012'
          sslhostnameverificationignored:        '1'
          jsseenabled:                           '1' 
-
+         require:                               Wls_machine[Node1]
 
 # create cluster and assign the managed servers
 cluster_instances:
@@ -196,16 +214,21 @@ cluster_instances:
         migrationbasis: 'consensus'
         servers:        
           - 'SoaServer1'
+        require:
+          - Wls_server[SoaServer1]
       'BamCluster':
         ensure:         'present'
         messagingmode:  'unicast'
         migrationbasis: 'consensus'
         servers:        
           - 'BamServer1'
+        require:
+          - Wls_server[BamServer1]
       'OsbCluster':
         ensure:         'present'
         messagingmode:  'unicast'
         migrationbasis: 'consensus'
         servers:        
           - 'OsbServer1'
-
+        require:
+          - Wls_server[OsbServer1]
