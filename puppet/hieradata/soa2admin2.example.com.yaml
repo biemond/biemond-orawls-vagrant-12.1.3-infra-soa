@@ -50,14 +50,16 @@ fmw_installations:
     remote_file:             false
 
 # when you have just one domain on a server
-domain_name:                "soa_domain"
-domain_adminserver:         "AdminServer"
-domain_adminserver_address: "10.10.10.21"
-domain_adminserver_port:    7001
-domain_nodemanager_port:    5556
-domain_wls_password:        "weblogic1"
+domain_name:                &domain_name                "soa_domain"
+domain_adminserver:         &domain_adminserver         "AdminServer"
+domain_adminserver_address: &domain_adminserver_address "10.10.10.21"
+domain_adminserver_port:    &domain_adminserver_port    7001
+domain_nodemanager_port:    &domain_nodemanager_port    5556
+domain_wls_password:        &domain_wls_password        "weblogic1"
 domain_user_config_file:    "/home/oracle/oracle-soa_domain-WebLogicConfig.properties"
 domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properties"
+
+
 
 # create a soa domain
 domain_instances:
@@ -107,7 +109,7 @@ userconfig_instances:
      log_output:           *logoutput
      user_config_dir:      '/home/oracle'
 
-# fmw cluster 
+# fmw cluster
 fmw_cluster_instances:
   'soaCluster':
     domain_name:          "soa_domain"
@@ -152,7 +154,7 @@ machines_instances:
 server_instances:
       'SoaServer1':
          ensure:                                'present'
-         arguments:                             
+         arguments:
            - '-XX:PermSize=256m'
            - '-XX:MaxPermSize=752m'
            - '-Xms1024m'
@@ -171,11 +173,11 @@ server_instances:
          sslenabled:                            '0'
          ssllistenport:                         '8002'
          sslhostnameverificationignored:        '1'
-         jsseenabled:                           '1' 
+         jsseenabled:                           '1'
          require:                               Wls_machine[Node1]
       'BamServer1':
          ensure:                                'present'
-         arguments:                             
+         arguments:
            - '-XX:PermSize=256m'
            - '-XX:MaxPermSize=752m'
            - '-Xms752m'
@@ -194,11 +196,11 @@ server_instances:
          sslenabled:                            '0'
          ssllistenport:                         '9002'
          sslhostnameverificationignored:        '1'
-         jsseenabled:                           '1' 
+         jsseenabled:                           '1'
          require:                               Wls_machine[Node1]
       'OsbServer1':
          ensure:                                'present'
-         arguments:                             
+         arguments:
            - '-XX:PermSize=256m'
            - '-XX:MaxPermSize=512m'
            - '-Xms752m'
@@ -217,7 +219,7 @@ server_instances:
          sslenabled:                            '0'
          ssllistenport:                         '8012'
          sslhostnameverificationignored:        '1'
-         jsseenabled:                           '1' 
+         jsseenabled:                           '1'
          require:                               Wls_machine[Node1]
 
 # create cluster and assign the managed servers
@@ -226,7 +228,7 @@ cluster_instances:
         ensure:         'present'
         messagingmode:  'unicast'
         migrationbasis: 'consensus'
-        servers:        
+        servers:
           - 'SoaServer1'
         require:
           - Wls_server[SoaServer1]
@@ -234,7 +236,7 @@ cluster_instances:
         ensure:         'present'
         messagingmode:  'unicast'
         migrationbasis: 'consensus'
-        servers:        
+        servers:
           - 'BamServer1'
         require:
           - Wls_server[BamServer1]
@@ -242,7 +244,7 @@ cluster_instances:
         ensure:         'present'
         messagingmode:  'unicast'
         migrationbasis: 'consensus'
-        servers:        
+        servers:
           - 'OsbServer1'
         require:
           - Wls_server[OsbServer1]
