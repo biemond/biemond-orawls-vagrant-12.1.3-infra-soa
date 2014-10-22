@@ -18,7 +18,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     soa2admin2.vm.network :private_network, ip: "10.10.10.21"
 
     soa2admin2.vm.provider :virtualbox do |vb|
-      vb.customize ["modifyvm", :id, "--memory", "5548"]
+      vb.customize ["modifyvm", :id, "--memory", "2548"]
       vb.customize ["modifyvm", :id, "--name"  , "soa2admin2"]
       vb.customize ["modifyvm", :id, "--cpus"  , 2]
     end
