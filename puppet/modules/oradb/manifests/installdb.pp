@@ -192,7 +192,7 @@ define oradb::installdb(
         file { "${userBaseDir}/${user}/.bash_profile":
           ensure  => present,
           # content => template('oradb/bash_profile.erb'),
-          content => regsubst(template("oradb/bash_profile.erb"), '\r\n', "\n", 'EMG'), 
+          content => regsubst(template('oradb/bash_profile.erb'), '\r\n', "\n", 'EMG'),
           mode    => '0775',
           owner   => $user,
           group   => $group,

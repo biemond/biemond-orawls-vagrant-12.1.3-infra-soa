@@ -18,7 +18,7 @@ class oradb::prepareautostart
     mode    => '0755',
     owner   => 'root',
     # content => template('oradb/dbora.erb'),
-    content => regsubst(template("oradb/dbora.erb"), '\r\n', "\n", 'EMG'), 
+    content => regsubst(template('oradb/dbora.erb'), '\r\n', "\n", 'EMG'),
   }
 
   case $::operatingsystem {
