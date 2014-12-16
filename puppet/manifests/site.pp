@@ -1,3 +1,6 @@
+Package{allow_virtual => false,}
+
+
 node 'soa2admin2.example.com','mft1admin.example.com' {
 
   include os
@@ -11,7 +14,7 @@ node 'soa2admin2.example.com','mft1admin.example.com' {
   include nodemanager, startwls, userconfig
   include security
   include basic_config
-  include fmw_config  
+  include fmw_config
   include datasources
   include virtual_hosts
   include workmanagers
