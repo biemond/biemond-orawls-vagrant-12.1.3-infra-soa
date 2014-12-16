@@ -5,11 +5,12 @@ created by Edwin Biemond
 [biemond.blogspot.com](http://biemond.blogspot.com)
 [Github homepage](https://github.com/biemond/puppet)
 
-Should work for Solaris and all Linux version like RedHat, CentOS, Ubuntu, Debian, Suse SLES or OracleLinux
-
-Here you can test the solaris 10 vagrant box with Oracle Database 12.1 [solaris vagrant box](https://github.com/biemond/biemond-orawls-vagrant-solaris-soa)
-
-Here you can test the CentOS 6.5 vagrant box with Oracle Database 11.2.0.4 and GoldenGate 12.1.2 [coherence goldengate vagrant box]( https://github.com/biemond/vagrant-wls12.1.2-coherence-goldengate)
+Should work on Docker, for Solaris and on all Linux version like RedHat, CentOS, Ubuntu, Debian, Suse SLES or OracleLinux
+- Docker image of Oracle Database 12.1 SE [Docker Oracle Database 12.1.0.1](https://github.com/biemond/docker-database-puppet)
+- CentOS 6.5 vagrant box with Oracle Database 12.1 and Enterprise Manager 12.1.0.4 [Enterprise vagrant box](https://github.com/biemond/biemond-em-12c)
+- Solaris 11.2 vagrant box with Oracle Database 12.1 [solaris 11.2 vagrant box](https://github.com/biemond/biemond-oradb-vagrant-12.1-solaris11.2)
+- Solaris 10 vagrant box with Oracle Database 12.1 [solaris 10 vagrant box](https://github.com/biemond/biemond-orawls-vagrant-solaris-soa)
+- CentOS 6.5 vagrant box with Oracle Database 11.2.0.4 and GoldenGate 12.1.2 [coherence goldengate vagrant box]( https://github.com/biemond/vagrant-wls12.1.2-coherence-goldengate)
 
 Example of Opensource Puppet 3.4.3 Puppet master configuration in a vagrant box [puppet master](https://github.com/biemond/vagrant-puppetmaster)
 - oradb (oracle database 11.2.0.1 ) with GoldenGate 12.1.2
@@ -25,25 +26,39 @@ Should work for Puppet 2.7 & 3.0
 - Oracle Database Client 12.1.0.1,12.1.0.2,11.2.0.4,11.2.0.1 Linux / Solaris installation
 - Oracle Database Net configuration
 - Oracle Database Listener
+- Tnsnames entry
 - Oracle ASM
 - Oracle RAC
 - OPatch upgrade
 - Apply OPatch also for Clusterware
 - Create database instances
-- Stop/Start database instances
+- Stop/Start database instances with db_control puppet resource type
+
+## Enterprise Manager
+- Enterprise Manager Server 12.1.0.4 12c cloud installation / configuration
+- Agent installation via AgentPull.sh & AgentDeploy.sh
+
+## GoldenGate
 - GoldenGate 12.1.2, 11.2.1
+
+## Repository Creation Utility (RCU)
 - Installs RCU repositoy for Oracle SOA Suite / Webcenter ( 11.1.1.6.0 and 11.1.1.7.0 ) / Oracle Identity Management ( 11.1.2.1 )
 
 ## Oracle RAC
 In combination with the [ora_rac](https://forge.puppetlabs.com/hajee/ora_rac) module of Bert Hajee (https://forge.puppetlabs.com/hajee/ora_rac)
 
-## Oracle Database types
+## Oracle Database resource types
+- db_control, start stop or a restart a database instance also used by dbactions manifest.pp
+- db_opatch, used by the opatch.pp manifest
+- db_rcu, used by the rcu.pp manifest
+
+
 In combination with the [oracle](http://forge.puppetlabs.com/hajee/oracle) module of Bert Hajee (http://forge.puppetlabs.com/hajee/oracle) you can also create
 - create a tablespace
 - create a user with the required grants and quota's
 - create one or more roles
 - create one or more services
-- change a database init parameter
+- change a database init parameter (Memory or SPFILE)
 
 
 Some manifests like installdb.pp, opatch.pp or rcusoa.pp supports an alternative mountpoint for the big oracle files.
@@ -67,6 +82,44 @@ The databaseType value should contain only one of these choices.
 - EE = Enterprise Edition
 - SE = Standard Edition
 - SEONE = Standard Edition One
+
+## Installation, Disk or memory issues
+
+    # hiera
+    hosts:
+      'emdb.example.com':
+        ip:                "10.10.10.15"
+        host_aliases:      'emdb'
+      'localhost':
+        ip:                "127.0.0.1"
+        host_aliases:      'localhost.localdomain,localhost4,localhost4.localdomain4'
+
+    $host_instances = hiera('hosts', {})
+    create_resources('host',$host_instances)
+
+    # disable the firewall
+    service { iptables:
+      enable    => false,
+      ensure    => false,
+      hasstatus => true,
+    }
+
+    # set the swap ,forge puppet module petems-swap_file
+    class { 'swap_file':
+      swapfile     => '/var/swap.1',
+      swapfilesize => '8192000000'
+    }
+
+    # set the tmpfs
+    mount { '/dev/shm':
+      ensure      => present,
+      atboot      => true,
+      device      => 'tmpfs',
+      fstype      => 'tmpfs',
+      options     => 'size=3500m',
+    }
+
+see this chapter "Linux kernel, ulimits and required packages" for more important information
 
 ## Database install
 
@@ -320,6 +373,21 @@ or delete a database
 
 Database instance actions
 
+    db_control{'emrepos start':
+      ensure                  => 'running', #running|start|abort|stop
+      instance_name           => 'test',
+      oracle_product_home_dir => '/oracle/product/11.2/db',
+      os_user                 => 'oracle',
+    }
+
+    db_control{'emrepos stop':
+      ensure                  => 'stop', #running|start|abort|stop
+      instance_name           => 'test',
+      oracle_product_home_dir => '/oracle/product/11.2/db',
+      os_user                 => 'oracle',
+    }
+
+    # the old way
     oradb::dbactions{ 'stop testDb':
       oracleHome              => '/oracle/product/11.2/db',
       user                    => 'oracle',
@@ -338,6 +406,16 @@ Database instance actions
       require                 => Oradb::Dbactions['stop testDb'],
     }
 
+    # subscribe to changes
+    db_control{'emrepos restart':
+      ensure                  => 'running', #running|start|abort|stop
+      instance_name           => 'test',
+      oracle_product_home_dir => '/oracle/product/11.2/db',
+      os_user                 => 'oracle',
+      refreshonly             => true,
+      subscribe               => Init_param['emrepos/memory_target'],
+    }
+
     oradb::autostartdatabase{ 'autostart oracle':
       oracleHome              => '/oracle/product/12.1/db',
       user                    => 'oracle',
@@ -345,6 +423,26 @@ Database instance actions
       require                 => Oradb::Dbactions['start testDb'],
     }
 
+Tnsnames.ora
+
+    oradb::tnsnames{'orcl':
+      oracleHome         => '/oracle/product/11.2/db',
+      user               => 'oracle',
+      group              => 'dba',
+      server             => { myserver => { host => soadb.example.nl, port => '1521', protocol => 'TCP' }},
+      connectServiceName => 'soarepos.example.nl',
+      require            => Oradb::Dbactions['start oraDb'],
+    }
+
+    oradb::tnsnames{'test':
+      oracleHome         => '/oracle/product/11.2/db',
+      user               => 'oracle',
+      group              => 'dba',
+      server             => { myserver => { host => soadb.example.nl, port => '1525', protocol => 'TCP' }, { host => soadb2.example.nl, port => '1526', protocol => 'TCP' }},
+      connectServiceName => 'soarepos.example.nl',
+      connectServer      => 'DEDICATED',
+      require            => Oradb::Dbactions['start oraDb'],
+    }
 
 
 ## Grid install with ASM
@@ -380,6 +478,79 @@ Database instance actions
         require     => Group[$all_groups],
         managehome  => true,
       }
+
+      ####### NFS example
+
+      file { '/nfs_server_data':
+        ensure  => directory,
+        recurse => false,
+        replace => false,
+        mode    => '0775',
+        owner   => 'grid',
+        group   => 'asmadmin',
+        require =>  User['grid'],
+      }
+
+      class { 'nfs::server':
+        package => latest,
+        service => running,
+        enable  => true,
+      }
+
+      nfs::export { '/nfs_server_data':
+        options => [ 'rw', 'sync', 'no_wdelay','insecure_locks','no_root_squash' ],
+        clients => [ "*" ],
+        require => File['/nfs_server_data']
+      }
+
+      file { '/nfs_client':
+        ensure  => directory,
+        recurse => false,
+        replace => false,
+        mode    => '0775',
+        owner   => 'grid',
+        group   => 'asmadmin',
+        require =>  User['grid'],
+      }
+
+      mounts { 'Mount point for NFS data':
+        ensure => present,
+        source => 'soadbasm:/nfs_server_data',
+        dest   => '/nfs_client',
+        type   => 'nfs',
+        opts   => 'rw,bg,hard,nointr,tcp,vers=3,timeo=600,rsize=32768,wsize=32768,actimeo=0  0 0',
+      }
+
+      exec { "/bin/dd if=/dev/zero of=/nfs_client/asm_sda_nfs_b1 bs=1M count=7520":
+        user      => 'grid',
+        group     => 'asmadmin',
+        logoutput => true,
+        unless    => "/usr/bin/test -f /nfs_client/asm_sda_nfs_b1",
+        require   => Mounts['Mount point for NFS data'],
+      }
+      exec { "/bin/dd if=/dev/zero of=/nfs_client/asm_sda_nfs_b2 bs=1M count=7520":
+        user      => 'grid',
+        group     => 'asmadmin',
+        logoutput => true,
+        unless    => "/usr/bin/test -f /nfs_client/asm_sda_nfs_b2",
+        require   => [Mounts['Mount point for NFS data'],
+                      Exec["/bin/dd if=/dev/zero of=/nfs_client/asm_sda_nfs_b1 bs=1M count=7520"]],
+      }
+
+      exec { "/bin/chown grid:asmadmin /nfs_client/*":
+        user      => 'root',
+        group     => 'root',
+        logoutput => true,
+        require   => Exec["/bin/dd if=/dev/zero of=/nfs_client/asm_sda_nfs_b2 bs=1M count=7520"],
+      }
+      exec { "/bin/chmod 664 /nfs_client/*":
+        user      => 'root',
+        group     => 'root',
+        logoutput => true,
+        require   => Exec["/bin/dd if=/dev/zero of=/nfs_client/asm_sda_nfs_b2 bs=1M count=7520"],
+      }
+      ###### end of NFS example
+
 
       // oradb::installasm{ '12.1_linux-x64':
       //  version                => '12.1.0.1',
@@ -521,57 +692,123 @@ or
       logoutput              => true,
     }
 
+## Enteprise Mananager
+
+    oradb::installem{ 'em12104':
+      version                     => '12.1.0.4',
+      file                        => 'em12104_linux64',
+      oracle_base_dir             => '/oracle',
+      oracle_home_dir             => '/oracle/product/12.1/em',
+      agent_base_dir              => '/oracle/product/12.1/agent',
+      software_library_dir        => '/oracle/product/12.1/swlib',
+      weblogic_user               => 'weblogic',
+      weblogic_password           => 'Welcome01',
+      database_hostname           => 'emdb.example.com',
+      database_listener_port      => 1521,
+      database_service_sid_name   => 'emrepos.example.com',
+      database_sys_password       => 'Welcome01',
+      sysman_password             => 'Welcome01',
+      agent_registration_password => 'Welcome01',
+      deployment_size             => 'SMALL',
+      user                        => 'oracle',
+      group                       => 'oinstall',
+      download_dir                => '/install',
+      zip_extract                 => true,
+      puppet_download_mnt_point   => '/software',
+      remote_file                 => false,
+      log_output                  => true,
+    }
+
+    oradb::installem_agent{ 'em12104_agent':
+      version                     => '12.1.0.4',
+      source                      => 'https://10.10.10.25:7802/em/install/getAgentImage',
+      install_type                => 'agentPull',
+      install_platform            => 'Linux x86-64',
+      oracle_base_dir             => '/oracle',
+      agent_base_dir              => '/oracle/product/12.1/agent',
+      agent_instance_home_dir     => '/oracle/product/12.1/agent/agent_inst',
+      sysman_user                 => 'sysman',
+      sysman_password             => 'Welcome01',
+      agent_registration_password => 'Welcome01',
+      agent_port                  => 1830,
+      oms_host                    => '10.10.10.25',
+      oms_port                    => 7802,
+      em_upload_port              => 4903,
+      user                        => 'oracle',
+      group                       => 'dba',
+      download_dir                => '/var/tmp/install',
+      log_output                  => true,
+    }
+
+    oradb::installem_agent{ 'em12104_agent2':
+      version                     => '12.1.0.4',
+      source                      => '/var/tmp/install/agent.zip',
+      install_type                => 'agentDeploy',
+      oracle_base_dir             => '/oracle',
+      agent_base_dir              => '/oracle/product/12.1/agent2',
+      agent_instance_home_dir     => '/oracle/product/12.1/agent2/agent_inst',
+      agent_registration_password => 'Welcome01',
+      agent_port                  => 1832,
+      oms_host                    => '10.10.10.25',
+      em_upload_port              => 4903,
+      user                        => 'oracle',
+      group                       => 'dba',
+      download_dir                => '/var/tmp/install',
+      log_output                  => true,
+    }
 
 ## Database configuration
 In combination with the oracle puppet module from hajee you can create/change a database init parameter, tablespace,role or an oracle user
 
-
-    init_param{'processes':
-      ensure  => present,
-      value   => '800',
-      scope   => spfile,
+    ora_init_param{'SPFILE/processes@soarepos':
+      ensure => 'present',
+      value  => '1000',
     }
 
-    init_param{'job_queue_processes':
+    ora_init_param{'SPFILE/job_queue_processes@soarepos':
       ensure  => present,
-      value   => '2',
-      scope   => both,
-      require => init_param['processes'],
+      value   => '4',
     }
 
-    tablespace {'scott_ts':
+    db_control{'soarepos restart':
+      ensure                  => 'running', #running|start|abort|stop
+      instance_name           => hiera('oracle_database_name'),
+      oracle_product_home_dir => hiera('oracle_home_dir'),
+      os_user                 => hiera('oracle_os_user'),
+      refreshonly             => true,
+      subscribe               => [Ora_init_param['SPFILE/processes@soarepos'],
+                                  Ora_init_param['SPFILE/job_queue_processes@soarepos'],],
+    }
+
+    ora_tablespace {'JMS_TS@soarepos':
       ensure                    => present,
+      datafile                  => 'jms_ts.dbf',
       size                      => 100M,
-      datafile                  => 'scott_ts.dbf',
       logging                   => yes,
       autoextend                => on,
       next                      => 100M,
-      max_size                  => 12288M,
+      max_size                  => 1G,
       extent_management         => local,
       segment_space_management  => auto,
     }
 
-    role {'apps':
+    ora_role {'APPS@soarepos':
       ensure    => present,
     }
 
-    oracle_user{'scott':
+    ora_user{'JMS@soarepos':
+      ensure                    => present,
       temporary_tablespace      => temp,
-      default_tablespace        => 'scott_ts',
-      password                  => 'tiger',
-      grants                    => ['SELECT ANY TABLE',
-                                    'CONNECT',
-                                    'RESOURCE',
-                                    'apps'],
-      quotas                    => { "scott_ts" => 'unlimited'},
-      require                   => [Tablespace['scott_ts'],
-                                    Role['apps']],
+      default_tablespace        => 'JMS_TS',
+      password                  => 'jms',
+      require                   => [Ora_tablespace['JMS_TS@soarepos'],
+                                    Ora_role['APPS@soarepos']],
+      grants                    => ['SELECT ANY TABLE', 'CONNECT', 'CREATE TABLE', 'CREATE TRIGGER','APPS'],
+      quotas                    => {
+                                      "JMS_TS"  => 'unlimited'
+                                    },
     }
 
-    init_param{'sid/parameter/instance':
-      ensure  => present,
-      value   => 'the_value'
-    }
 
 ## Oracle GoldenGate 12.1.2 and 11.2.1
 
@@ -803,7 +1040,7 @@ install the following module to set the database user limits parameters
       $install = [ 'binutils.x86_64', 'compat-libstdc++-33.x86_64', 'glibc.x86_64','ksh.x86_64','libaio.x86_64',
                     'libgcc.x86_64', 'libstdc++.x86_64', 'make.x86_64','compat-libcap1.x86_64', 'gcc.x86_64',
                     'gcc-c++.x86_64','glibc-devel.x86_64','libaio-devel.x86_64','libstdc++-devel.x86_64',
-                    'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.i686','libXtst.i686']
+                    'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.x86_64','libXtst.x86_64']
 
       package { $install:
         ensure  => present,
@@ -966,5 +1203,114 @@ install the following module to set the database user limits parameters
     exec { "ulimit -H":
       command => "ulimit -H -n 65536",
       require => Exec["ulimit -S"],
+      path    => $execPath,
+    }
+
+## Solaris 11 kernel, ulimits and required packages
+
+    package { ['shell/ksh', 'developer/assembler']:
+      ensure => present,
+    }
+
+    $install  = "pkg:/group/prerequisite/oracle/oracle-rdbms-server-12-1-preinstall"
+
+    package { $install:
+      ensure  => present,
+    }
+
+    $groups = ['oinstall','dba' ,'oper' ]
+
+    group { $groups :
+      ensure      => present,
+    }
+
+    user { 'oracle' :
+      ensure      => present,
+      uid         => 500,
+      gid         => 'dba',
+      groups      => $groups,
+      shell       => '/bin/bash',
+      password    => '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
+      home        => "/export/home/oracle",
+      comment     => "This user oracle was created by Puppet",
+      require     => Group[$groups],
+      managehome  => true,
+    }
+
+    $execPath     = "/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:"
+
+    exec { "projadd group.dba":
+      command => "projadd -U oracle -G dba -p 104 group.dba",
+      require => User["oracle"],
+      unless  => "projects -l | grep -c group.dba",
+      path    => $execPath,
+    }
+
+    exec { "usermod oracle":
+      command => "usermod -K project=group.dba oracle",
+      require => [User["oracle"],Exec["projadd group.dba"],],
+      path    => $execPath,
+    }
+
+    exec { "projmod max-shm-memory":
+      command => "projmod -sK 'project.max-shm-memory=(privileged,4G,deny)' group.dba",
+      require => [User["oracle"],Exec["projadd group.dba"],],
+      path    => $execPath,
+    }
+
+    exec { "projmod max-sem-ids":
+      command     => "projmod -sK 'project.max-sem-ids=(privileged,100,deny)' group.dba",
+      require     => Exec["projadd group.dba"],
+      path        => $execPath,
+    }
+
+    exec { "projmod max-shm-ids":
+      command     => "projmod -s -K 'project.max-shm-ids=(privileged,100,deny)' group.dba",
+      require     => Exec["projadd group.dba"],
+      path        => $execPath,
+    }
+
+    exec { "projmod max-sem-nsems":
+      command     => "projmod -sK 'process.max-sem-nsems=(privileged,256,deny)' group.dba",
+      require     => Exec["projadd group.dba"],
+      path        => $execPath,
+    }
+
+    exec { "projmod max-file-descriptor":
+      command     => "projmod -sK 'process.max-file-descriptor=(basic,65536,deny)' group.dba",
+      require     => Exec["projadd group.dba"],
+      path        => $execPath,
+    }
+
+    exec { "projmod max-stack-size":
+      command     => "projmod -sK 'process.max-stack-size=(privileged,32MB,deny)' group.dba",
+      require     => Exec["projadd group.dba"],
+      path        => $execPath,
+    }
+
+    exec { "ipadm smallest_anon_port tcp":
+      command     => "ipadm set-prop -p smallest_anon_port=9000 tcp",
+      path        => $execPath,
+    }
+    exec { "ipadm smallest_anon_port udp":
+      command     => "ipadm set-prop -p smallest_anon_port=9000 udp",
+      path        => $execPath,
+    }
+    exec { "ipadm largest_anon_port tcp":
+      command     => "ipadm set-prop -p largest_anon_port=65500 tcp",
+      path        => $execPath,
+    }
+    exec { "ipadm largest_anon_port udp":
+      command     => "ipadm set-prop -p largest_anon_port=65500 udp",
+      path        => $execPath,
+    }
+
+    exec { "ulimit -S":
+      command => "ulimit -S -n 4096",
+      path    => $execPath,
+    }
+
+    exec { "ulimit -H":
+      command => "ulimit -H -n 65536",
       path    => $execPath,
     }

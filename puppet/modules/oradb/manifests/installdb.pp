@@ -42,6 +42,13 @@ define oradb::installdb(
     fail('Unrecognized database type, please use EE|SE|SEONE')
   }
 
+  if ( $oracleBase == undef or is_string($oracleBase) == false) {fail('You must specify an oracleBase') }
+  if ( $oracleHome == undef or is_string($oracleHome) == false) {fail('You must specify an oracleHome') }
+
+  if ( $oracleBase in $oracleHome == false ){
+    fail('oracleHome folder should be under the oracleBase folder')
+  }
+
   # check if the oracle software already exists
   $found = oracle_exists( $oracleHome )
 
@@ -171,6 +178,7 @@ define oradb::installdb(
         path      => $execPath,
         user      => $user,
         group     => $group_install,
+        cwd       => $oracleBase,
         logoutput => true,
         require   => [Oradb::Utils::Dborainst["database orainst ${version}"],
                       File["${downloadDir}/db_install_${version}.rsp"]],
@@ -206,8 +214,43 @@ define oradb::installdb(
       user      => 'root',
       group     => 'root',
       path      => $execPath,
+      cwd       => $oracleBase,
       logoutput => true,
       require   => Exec["install oracle database ${title}"],
+    }
+
+    # cleanup
+    if ( $zipExtract ) {
+      exec { "remove oracle db extract folder ${title}":
+        command => "rm -rf ${downloadDir}/${file}",
+        user    => 'root',
+        group   => 'root',
+        path    => $execPath,
+        cwd     => $oracleBase,
+        require => [Exec["install oracle database ${title}"],
+                    Exec["run root.sh script ${title}"],],
+      }
+
+      if ( $remoteFile == true ){
+        exec { "remove oracle db file1 ${file1} ${title}":
+          command => "rm -rf ${downloadDir}/${file1}",
+          user    => 'root',
+          group   => 'root',
+          path    => $execPath,
+          cwd     => $oracleBase,
+          require => [Exec["install oracle database ${title}"],
+                      Exec["run root.sh script ${title}"],],
+        }
+        exec { "remove oracle db file2 ${file2} ${title}":
+          command => "rm -rf ${downloadDir}/${file2}",
+          user    => 'root',
+          group   => 'root',
+          path    => $execPath,
+          cwd     => $oracleBase,
+          require => [Exec["install oracle database ${title}"],
+                      Exec["run root.sh script ${title}"],],
+        }
+      }
     }
   }
 }

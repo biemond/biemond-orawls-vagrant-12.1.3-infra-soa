@@ -1,8 +1,32 @@
 # History
 
+## 1.0.25
+- Auto require on wls resource types
+- urandom fix for rngd service on RedHat Family version 7
+- Secure replication parameter for wls_cluster
+- ignore ldap providers for wls_user & wls_group
+
+## 1.0.24
+- Wls_setting resource type check for required attributes
+- Timeout parameter bug on all wls resource types ( the default 120 was always used)
+- Nodemanager.pp exec sleep command replaced by fiddyspence/sleep resource type, will check every 2 seconds with netstat
+
+## 1.0.23
+- Solaris 11 fixes for nodemanager, wls_adminserver & wls_managedserver resource types
+- wls_server resource type changes like: check for Adminserver creation/deletion, new properties tunnelingenabled, log_http_format_type, log_http_format, default_file_store, log_datasource_filename
+- wls_domain resource type properties: platform-m-bean-server-enabled, platform-m-bean-server-used, show-archived-real-path-enabled
+- wls_jms_connection_factory resource type properties: client-id-policy, subscription-sharing-policy, messages-maximum, reconnect-policy, load-balancing-enabled, server-affinity-enabled, attach-jmsx-user-id
+- changed oraInst.loc permissions to 0755
+
+## 1.0.22
+- fix for copydomain when the standard domains location is used
+- enable storage on wls_coherence_cluster
+- AdminServer option to listen on all interfaces, adminserver_listen_on_all_interfaces = true on domain.pp
+
 ## 1.0.21
 - puppet custom type for 12.1.2, 12.1.3 RCU, checks first if it already exists
 - refactor all domains py scripts to standard one with an FMW extension (optional)
+- fmw temp directory bug fix
 
 ## 1.0.20
 - unset DISPLAY on install/configurations actions to avoid X timeout

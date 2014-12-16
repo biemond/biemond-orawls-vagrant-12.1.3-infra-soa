@@ -22,15 +22,18 @@ Dependency with
 - hajee/easy_type >=0.10.0
 - adrien/filemapper >= 1.1.1
 - reidmv/yamlfile >=0.2.0
+- fiddyspence/sleep => 1.1.2
+
 
 ## Complete examples
+- Docker with WebLogic 12.1.3 Cluster [docker-weblogic-puppet](https://github.com/biemond/docker-weblogic-puppet)
 - WebLogic 12.1.3 Reference implementation, the vagrant test case for full working WebLogic 12.1.3 cluster example [biemond-orawls-vagrant-12.1.3](https://github.com/biemond/biemond-orawls-vagrant-12.1.3)
 - WebLogic 12.1.3 infra (JRF), the vagrant test case for full working WebLogic 12.1.3 infra cluster example with WebTier (Oracle HTTP Server) [biemond-orawls-vagrant-12.1.3-infra](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra)
 - WebLogic 12.1.3 infra with OSB, the vagrant test case for full working WebLogic 12.1.3 infra OSB cluster example [biemond-orawls-vagrant-12.1.3-infra-osb](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-osb)
 - WebLogic 12.1.3 infra with OSB & SOA,ESS,BAM, the vagrant test case for full working WebLogic 12.1.3 infra OSB SOA Cluster example [biemond-orawls-vagrant-12.1.3-infra-soa](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-soa)
 - WebLogic 12.1.2 Reference implementation, the vagrant test case for full working WebLogic 12.1.2 cluster example [biemond-orawls-vagrant-12.1.2](https://github.com/biemond/biemond-orawls-vagrant-12.1.2)
 - WebLogic 12.1.2 infra (JRF) with WebTier, the vagrant test case for full working WebLogic 12.1.2 infra cluster example with WebTier (Oracle HTTP Server) [biemond-orawls-vagrant-12.1.2-infra](https://github.com/biemond/biemond-orawls-vagrant-12.1.2-infra)
-- Reference Solaris implementation, the vagrant test case for full working WebLogic 12.1.2 cluster example [biemond-orawls-vagrant-solaris](https://github.com/biemond/biemond-orawls-vagrant-solaris)
+- Reference Solaris implementation, the vagrant test case for full working WebLogic 12.1.3 cluster example [biemond-orawls-vagrant-solaris](https://github.com/biemond/biemond-orawls-vagrant-solaris)
 - Reference OIM / OAM with WebTier, Webgate & Oracle Unified Directory, the vagrant test case for Oracle Identity Manager & Oracle Access Manager 11.1.2.2 example [biemond-orawls-vagrant-oim_oam](https://github.com/biemond/biemond-orawls-vagrant-oim_oam)
 - WebLogic 11g Reference implementation, the vagrant test case for full working WebLogic 10.3.6 cluster example [biemond-orawls-vagrant](https://github.com/biemond/biemond-orawls-vagrant)
 - Reference Oracle SOA Suite, the vagrant test case for full working WebLogic 10.3.6 SOA Suite + OSB cluster example [biemond-orawls-vagrant-solaris-soa](https://github.com/biemond/biemond-orawls-vagrant-solaris-soa)
@@ -119,6 +122,7 @@ all templates creates a WebLogic domain, logs the domain creation output
 it should work on every PE or opensource puppet master, customers and I succesfull tested orawls on PE 3.0, 3.1, 3.2, 3.3. See also the puppet master vagrant box
 
 But when it fails you can do the following actions.
+- Check the time difference/timezone between all the puppet master and agent machines.
 - Update orawls and its dependencies on the puppet master.
 - After adding or refreshing the easy_type or orawls modules you need to restart all the PE services on the puppet master (this will flush the PE cache) and always do a puppet agent run on the Puppet master
 - To solve this error "no such file to load -- easy_type" you need just to do a puppet run on the puppet master when it is still failing you can move the easy_type module to its primary module location ( /etc/puppetlabs/puppet/module )
@@ -1553,31 +1557,37 @@ or use puppet resource wls_domain
 
     # In this case it will use default as wls_setting identifier
     wls_domain { 'Wls1036':
-      ensure                      => 'present',
-      jpa_default_provider        => 'org.eclipse.persistence.jpa.PersistenceProvider',
-      jta_max_transactions        => '20000',
-      jta_transaction_timeout     => '35',
-      log_file_min_size           => '5000',
-      log_filecount               => '5',
-      log_filename                => '/var/log/weblogic/Wls1036.log',
-      log_number_of_files_limited => '1',
-      log_rotate_logon_startup    => '1',
-      log_rotationtype            => 'bySize',
-      security_crossdomain        => '0',
+      ensure                                            => 'present',
+      jmx_platform_mbean_server_enabled                 => '1',
+      jmx_platform_mbean_server_used                    => '1',
+      jpa_default_provider                              => 'org.eclipse.persistence.jpa.PersistenceProvider',
+      jta_max_transactions                              => '20000',
+      jta_transaction_timeout                           => '35',
+      log_file_min_size                                 => '5000',
+      log_filecount                                     => '10',
+      log_filename                                      => '/var/log/weblogic/Wls1036.log',
+      log_number_of_files_limited                       => '1',
+      log_rotate_logon_startup                          => '1',
+      log_rotationtype                                  => 'bySize',
+      security_crossdomain                              => '0',
+      web_app_container_show_archived_real_path_enabled => '1',
     }
-    # In this case it will use domain2 as wls_setting identifier
-    wls_domain { 'domain2/Wls11g':
-      ensure                      => 'present',
-      jpa_default_provider        => 'org.apache.openjpa.persistence.PersistenceProviderImpl',
-      jta_max_transactions        => '10000',
-      jta_transaction_timeout     => '30',
-      log_file_min_size           => '5000',
-      log_filecount               => '10',
-      log_filename                => '/var/log/weblogic/Wls11g.log',
-      log_number_of_files_limited => '0',
-      log_rotate_logon_startup    => '0',
-      log_rotationtype            => 'byTime',
-      security_crossdomain        => '1',
+
+    wls_domain { 'Wls11gSetting/Wls11g':
+      ensure                                            => 'present',
+      jmx_platform_mbean_server_enabled                 => '0',
+      jmx_platform_mbean_server_used                    => '1',
+      jpa_default_provider                              => 'org.apache.openjpa.persistence.PersistenceProviderImpl',
+      jta_max_transactions                              => '10000',
+      jta_transaction_timeout                           => '30',
+      log_file_min_size                                 => '5000',
+      log_filecount                                     => '5',
+      log_filename                                      => '/var/log/weblogic/Wls11g.log',
+      log_number_of_files_limited                       => '0',
+      log_rotate_logon_startup                          => '0',
+      log_rotationtype                                  => 'byTime',
+      security_crossdomain                              => '1',
+      web_app_container_show_archived_real_path_enabled => '0',
     }
 
 in hiera
@@ -2023,6 +2033,8 @@ or use puppet resource wls_server
       listenport                        => '8001',
       machine                           => 'Node1',
       sslenabled                        => '0',
+      tunnelingenabled                  => '0',
+      max_message_size                  => '10000000',
     }
 
 or with log parameters, default file store and ssl
@@ -2042,6 +2054,8 @@ or with log parameters, default file store and ssl
       logfilename                       => '/var/log/weblogic/wlsServer2.log',
       log_datasource_filename           => 'logs/datasource.log',
       log_http_filename                 => 'logs/access.log',
+      log_http_format                   => 'date time cs-method cs-uri sc-status',
+      log_http_format_type              => 'common',
       machine                           => 'Node2',
       sslenabled                        => '1',
       sslhostnameverificationignored    => '1',
@@ -2305,12 +2319,13 @@ or use puppet resource wls_coherence_cluster
 
     # this will use default as wls_setting identifier
     wls_coherence_cluster { 'WebCoherenceCluster':
-      ensure         => 'present',
-      clusteringmode => 'unicast',
-      multicastport  => '33389',
-      target         => ['WebCluster'],
-      targettype     => ['Cluster'],
-      unicastport    => '9999',
+      ensure          => 'present',
+      clusteringmode  => 'unicast',
+      multicastport   => '33389',
+      target          => ['WebCluster'],
+      targettype      => ['Cluster'],
+      unicastport     => '9999',
+      storage_enabled =>  '1',
     }
     wls_coherence_cluster { 'defaultCoherenceCluster':
       ensure         => 'present',
@@ -2327,13 +2342,16 @@ in hiera
 
 
     coherence_cluster_instances:
-      'WebCoherenceCluster':
-        ensure:         'present'
-        clusteringmode: 'unicast'
-        multicastport:  '33389'
-        target:         ['WebCluster']
-        targettype:     ['Cluster']
-        unicastport:    '9999'
+      'clusterCoherence':
+        ensure:           'present'
+        clusteringmode:   'unicast'
+        multicastaddress: '231.1.1.1'
+        multicastport:    '33387'
+        target:           ['DynamicCluster']
+        targettype:       ['Cluster']
+        unicastport:      '9099'
+        unicastaddress:   '10.10.10.100,10.10.10.200'
+        storage_enabled:  '1'
 
 
 
@@ -2795,20 +2813,33 @@ it needs wls_setting and when identifier is not provided it will use the 'defaul
 or use puppet resource wls_connection_factory
 
     wls_jms_connection_factory { 'jmsClusterModule:cf':
-      ensure             => 'present',
-      defaulttargeting   => '0',
-      jndiname           => 'jms/cf',
-      subdeployment      => 'wlsServers',
-      transactiontimeout => '3600',
-      xaenabled          => '0',
+      ensure                    => 'present',
+      attachjmsxuserid          => '0',
+      clientidpolicy            => 'Restricted',
+      defaulttargeting          => '0',
+      jndiname                  => 'jms/cf',
+      loadbalancingenabled      => '1',
+      messagesmaximum           => '10',
+      reconnectpolicy           => 'producer',
+      serveraffinityenabled     => '1',
+      subdeployment             => 'wlsServers',
+      subscriptionsharingpolicy => 'Exclusive',
+      transactiontimeout        => '3600',
+      xaenabled                 => '0',
     }
-    wls_jms_connection_factory { 'jmsClusterModule:cf2':
-      ensure             => 'present',
-      defaulttargeting   => '1',
-      jndiname           => 'jms/cf2',
-      subdeployment      => 'cf2',
-      transactiontimeout => '3600',
-      xaenabled          => '1',
+    wls_jms_connection_factory { 'default/jmsClusterModule:cf2':
+      ensure                    => 'present',
+      attachjmsxuserid          => '0',
+      clientidpolicy            => 'Restricted',
+      defaulttargeting          => '1',
+      jndiname                  => 'jms/cf2',
+      loadbalancingenabled      => '1',
+      messagesmaximum           => '10',
+      reconnectpolicy           => 'producer',
+      serveraffinityenabled     => '1',
+      subscriptionsharingpolicy => 'Exclusive',
+      transactiontimeout        => '3600',
+      xaenabled                 => '1',
     }
 
 in hiera

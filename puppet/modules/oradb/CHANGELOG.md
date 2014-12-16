@@ -1,7 +1,26 @@
 # Version updates
 
+## 1.0.25
+- added extra parameter validation to installdb, installasm and installem_agent
+
+## 1.0.24
+- Enterprise Manager agent install with AgentPull & AgentDeploy
+- Cleanup install zip files and extracted installation folder in installdb, installasm, installem and client
+
+## 1.0.23
+- Enterprise Manager 12.1.0.4 server installation support
+- Support for Solaris 11.2
+- autostart service for Solaris
+
+## 1.0.22
+- db_control puppet resource type, start or stop an instance or subscribe to changes like init_param
+- Tnsnames change so it supports a TNS balanced configuration
+- changed oraInst.loc permissions to 0755
+
 ## 1.0.21
 - fix for windows/unix linefeed when oradb is used in combination with vagrant on a windows host
+- opatch check bug when run it twice
+- Add a tnsnames entry support
 
 ## 1.0.20
 - Create a Database instance based on a template
