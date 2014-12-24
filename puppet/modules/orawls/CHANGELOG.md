@@ -1,5 +1,11 @@
 # History
 
+## 1.0.27
+
+## 1.0.26
+- auto require based on the wls resource parameters, no need to use require on the all wls resource types
+- wls_adminserver type used plain as a default in nmconnect
+
 ## 1.0.25
 - Auto require on wls resource types
 - urandom fix for rngd service on RedHat Family version 7

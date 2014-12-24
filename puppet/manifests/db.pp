@@ -1,6 +1,5 @@
 Package{allow_virtual => false,}
 
-
 node 'soadb.example.com' {
   include oradb_os
   include oradb_11g
@@ -9,23 +8,9 @@ node 'soadb.example.com' {
 # operating settings for Database & Middleware
 class oradb_os {
 
-  exec { "create swap file":
-    command => "/bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=8192",
-    creates => "/var/swap.1",
-  }
-
-  exec { "attach swap file":
-    command => "/sbin/mkswap /var/swap.1 && /sbin/swapon /var/swap.1",
-    require => Exec["create swap file"],
-    unless => "/sbin/swapon -s | grep /var/swap.1",
-  }
-
-  #add swap file entry to fstab
-  exec {"add swapfile entry to fstab":
-    command => "/bin/echo >>/etc/fstab /var/swap.1 swap swap defaults 0 0",
-    require => Exec["attach swap file"],
-    user => root,
-    unless => "/bin/grep '^/var/swap.1' /etc/fstab 2>/dev/null",
+  class { 'swap_file':
+    swapfile     => '/var/swap.1',
+    swapfilesize => '8192000000'
   }
 
   $host_instances = hiera('hosts', {})
@@ -56,10 +41,13 @@ class oradb_os {
     managehome  => true,
   }
 
-  $install = [ 'binutils.x86_64', 'compat-libstdc++-33.x86_64', 'glibc.x86_64','ksh.x86_64','libaio.x86_64',
-               'libgcc.x86_64', 'libstdc++.x86_64', 'make.x86_64','compat-libcap1.x86_64', 'gcc.x86_64',
-               'gcc-c++.x86_64','glibc-devel.x86_64','libaio-devel.x86_64','libstdc++-devel.x86_64',
-               'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.x86_64','libXtst.x86_64']
+  $install = ['binutils.x86_64', 'compat-libstdc++-33.x86_64', 'glibc.x86_64',
+              'ksh.x86_64','libaio.x86_64',
+              'libgcc.x86_64', 'libstdc++.x86_64', 'make.x86_64','compat-libcap1.x86_64',
+              'gcc.x86_64',
+              'gcc-c++.x86_64','glibc-devel.x86_64','libaio-devel.x86_64',
+              'libstdc++-devel.x86_64',
+              'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.x86_64','libXtst.x86_64']
 
 
   package { $install:
@@ -149,7 +137,10 @@ class oradb_11g {
       recoveryAreaDestination => "/oracle/flash_recovery_area",
       characterSet            => "AL32UTF8",
       nationalCharacterSet    => "UTF8",
-      initParams              => "open_cursors=1000,processes=600,job_queue_processes=4",
+      # initParams              => "open_cursors=1000,processes=600,job_queue_processes=4",
+      initParams              => {'open_cursors'        => '1000',
+                                  'processes'           => '600',
+                                  'job_queue_processes' => '4' },
       sampleSchema            => 'FALSE',
       memoryPercentage        => "40",
       memoryTotal             => "800",

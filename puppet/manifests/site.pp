@@ -1,13 +1,11 @@
 Package{allow_virtual => false,}
 
-
 node 'soa2admin2.example.com','mft1admin.example.com' {
 
   include os
   include ssh
   include java
   include orawls::weblogic, orautils
-  include bsu
   include fmw
   include opatch
   include domains
@@ -32,23 +30,9 @@ class os {
   $host_instances = hiera('hosts', {})
   create_resources('host',$host_instances, $default_params)
 
-  exec { "create swap file":
-    command => "/bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=8192",
-    creates => "/var/swap.1",
-  }
-
-  exec { "attach swap file":
-    command => "/sbin/mkswap /var/swap.1 && /sbin/swapon /var/swap.1",
-    require => Exec["create swap file"],
-    unless => "/sbin/swapon -s | grep /var/swap.1",
-  }
-
-  #add swap file entry to fstab
-  exec {"add swapfile entry to fstab":
-    command => "/bin/echo >>/etc/fstab /var/swap.1 swap swap defaults 0 0",
-    require => Exec["attach swap file"],
-    user => root,
-    unless => "/bin/grep '^/var/swap.1' /etc/fstab 2>/dev/null",
+  class { 'swap_file':
+    swapfile     => '/var/swap.1',
+    swapfilesize => '8192000000'
   }
 
   service { iptables:
@@ -176,22 +160,15 @@ class java {
   }
 }
 
-class bsu{
-  require orawls::weblogic
-  $default_params = {}
-  $bsu_instances = hiera('bsu_instances', {})
-  create_resources('orawls::bsu',$bsu_instances, $default_params)
-}
-
 class fmw{
-  require bsu
+  require orawls::weblogic
   $default_params = {}
   $fmw_installations = hiera('fmw_installations', {})
   create_resources('orawls::fmw',$fmw_installations, $default_params)
 }
 
 class opatch{
-  require fmw,bsu,orawls::weblogic
+  require fmw,orawls::weblogic
   $default_params = {}
   $opatch_instances = hiera('opatch_instances', {})
   create_resources('orawls::opatch',$opatch_instances, $default_params)

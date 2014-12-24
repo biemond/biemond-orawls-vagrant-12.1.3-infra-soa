@@ -8,3 +8,5 @@ newproperty(:directory) do
   end
 
 end
+
+autorequire(:file) { directory }
