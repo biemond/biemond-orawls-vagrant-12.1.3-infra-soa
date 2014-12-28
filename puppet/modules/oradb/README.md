@@ -1,14 +1,20 @@
 # Oracle Database puppet module
-[![Build Status](https://travis-ci.org/biemond/biemond-oradb.png)](https://travis-ci.org/biemond/biemond-oradb)
+[![Build Status](https://travis-ci.org/biemond/biemond-oradb.png)](https://travis-ci.org/biemond/biemond-oradb) [![Coverage Status](https://coveralls.io/repos/biemond/biemond-oradb/badge.png?branch=master)](https://coveralls.io/r/biemond/biemond-oradb?branch=master)
 
 created by Edwin Biemond
 [biemond.blogspot.com](http://biemond.blogspot.com)
 [Github homepage](https://github.com/biemond/puppet)
 
+Dependency with
+- puppetlabs/concat >= 1.0.0
+- puppetlabs/stdlib >= 3.2.0
+- AlexCline/dirtree >= 0.2.1
+
 Should work on Docker, for Solaris and on all Linux version like RedHat, CentOS, Ubuntu, Debian, Suse SLES or OracleLinux
 - Docker image of Oracle Database 12.1 SE [Docker Oracle Database 12.1.0.1](https://github.com/biemond/docker-database-puppet)
 - CentOS 6.5 vagrant box with Oracle Database 12.1 and Enterprise Manager 12.1.0.4 [Enterprise vagrant box](https://github.com/biemond/biemond-em-12c)
 - CentOS 6.6 vagrant box with Oracle Database 11.2.0.4 on NFS ASM [ASM vagrant box](https://github.com/biemond/biemond-oradb-vagrant-11.2-ASM)
+- CentOS 6.6 vagrant box with Oracle Database 12.1.0.1 with pluggable databases [12c pluggable db vagrant box](https://github.com/biemond/biemond-oradb-vagrant-12.1-CDB)
 - Solaris 11.2 vagrant box with Oracle Database 12.1 [solaris 11.2 vagrant box](https://github.com/biemond/biemond-oradb-vagrant-12.1-solaris11.2)
 - Solaris 10 vagrant box with Oracle Database 12.1 [solaris 10 vagrant box](https://github.com/biemond/biemond-orawls-vagrant-solaris-soa)
 - CentOS 6.5 vagrant box with Oracle Database 11.2.0.4 and GoldenGate 12.1.2 [coherence goldengate vagrant box]( https://github.com/biemond/vagrant-wls12.1.2-coherence-goldengate)
@@ -23,7 +29,7 @@ Should work for Puppet 2.7 & 3.0
 - Oracle Grid 11.2.0.4, 12.1.0.1 Linux / Solaris installation
 - Oracle Database 12.1.0.1,12.1.0.2 Linux / Solaris installation
 - Oracle Database 11.2.0.1,11.2.0.3,11.2.0.4 Linux / Solaris installation
-- Oracle Database Instance 11.2 & 12.1 or provide your own db template
+- Oracle Database Instance 11.2 & 12.1 with pluggable database or provide your own db template
 - Oracle Database Client 12.1.0.1,12.1.0.2,11.2.0.4,11.2.0.1 Linux / Solaris installation
 - Oracle Database Net configuration
 - Oracle Database Listener
@@ -84,6 +90,8 @@ The databaseType value should contain only one of these choices.
 - SE = Standard Edition
 - SEONE = Standard Edition One
 
+##
+
 ## Installation, Disk or memory issues
 
     # hiera
@@ -122,6 +130,71 @@ The databaseType value should contain only one of these choices.
 
 see this chapter "Linux kernel, ulimits and required packages" for more important information
 
+## Linux kernel, ulimits and required packages
+
+install the following module to set the database kernel parameters
+*puppet module install fiddyspence-sysctl*
+
+install the following module to set the database user limits parameters
+*puppet module install erwbgy-limits*
+
+       $all_groups = ['oinstall','dba' ,'oper']
+
+       group { $all_groups :
+         ensure      => present,
+       }
+
+       user { 'oracle' :
+         ensure      => present,
+         uid         => 500,
+         gid         => 'oinstall',
+         groups      => ['oinstall','dba','oper'],
+         shell       => '/bin/bash',
+         password    => '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
+         home        => "/home/oracle",
+         comment     => "This user oracle was created by Puppet",
+         require     => Group[$all_groups],
+         managehome  => true,
+       }
+
+       sysctl { 'kernel.msgmnb':                 ensure => 'present', permanent => 'yes', value => '65536',}
+       sysctl { 'kernel.msgmax':                 ensure => 'present', permanent => 'yes', value => '65536',}
+       sysctl { 'kernel.shmmax':                 ensure => 'present', permanent => 'yes', value => '2588483584',}
+       sysctl { 'kernel.shmall':                 ensure => 'present', permanent => 'yes', value => '2097152',}
+       sysctl { 'fs.file-max':                   ensure => 'present', permanent => 'yes', value => '6815744',}
+       sysctl { 'net.ipv4.tcp_keepalive_time':   ensure => 'present', permanent => 'yes', value => '1800',}
+       sysctl { 'net.ipv4.tcp_keepalive_intvl':  ensure => 'present', permanent => 'yes', value => '30',}
+       sysctl { 'net.ipv4.tcp_keepalive_probes': ensure => 'present', permanent => 'yes', value => '5',}
+       sysctl { 'net.ipv4.tcp_fin_timeout':      ensure => 'present', permanent => 'yes', value => '30',}
+       sysctl { 'kernel.shmmni':                 ensure => 'present', permanent => 'yes', value => '4096', }
+       sysctl { 'fs.aio-max-nr':                 ensure => 'present', permanent => 'yes', value => '1048576',}
+       sysctl { 'kernel.sem':                    ensure => 'present', permanent => 'yes', value => '250 32000 100 128',}
+       sysctl { 'net.ipv4.ip_local_port_range':  ensure => 'present', permanent => 'yes', value => '9000 65500',}
+       sysctl { 'net.core.rmem_default':         ensure => 'present', permanent => 'yes', value => '262144',}
+       sysctl { 'net.core.rmem_max':             ensure => 'present', permanent => 'yes', value => '4194304', }
+       sysctl { 'net.core.wmem_default':         ensure => 'present', permanent => 'yes', value => '262144',}
+       sysctl { 'net.core.wmem_max':             ensure => 'present', permanent => 'yes', value => '1048576',}
+
+       class { 'limits':
+         config => {
+                    '*'       => { 'nofile'  => { soft => '2048'   , hard => '8192',   },},
+                    'oracle'  => { 'nofile'  => { soft => '65536'  , hard => '65536',  },
+                                    'nproc'  => { soft => '2048'   , hard => '16384',  },
+                                    'stack'  => { soft => '10240'  ,},},
+                    },
+         use_hiera => false,
+       }
+
+       $install = [ 'binutils.x86_64', 'compat-libstdc++-33.x86_64', 'glibc.x86_64','ksh.x86_64','libaio.x86_64',
+                    'libgcc.x86_64', 'libstdc++.x86_64', 'make.x86_64','compat-libcap1.x86_64', 'gcc.x86_64',
+                    'gcc-c++.x86_64','glibc-devel.x86_64','libaio-devel.x86_64','libstdc++-devel.x86_64',
+                    'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.x86_64','libXtst.x86_64']
+
+       package { $install:
+         ensure  => present,
+       }
+
+
 ## Database install
 
     $puppetDownloadMntPoint = "puppet:///modules/oradb/"
@@ -132,7 +205,6 @@ see this chapter "Linux kernel, ulimits and required packages" for more importan
       databaseType           => 'SE',
       oracleBase             => '/oracle',
       oracleHome             => '/oracle/product/12.1/db',
-      createUser             => true,
       bashProfile            => true,
       user                   => 'oracle',
       group                  => 'dba',
@@ -156,7 +228,6 @@ or with zipExtract ( does not download or extract , software is in /install/linu
       group                  => 'dba',
       group_install          => 'oinstall',
       group_oper             => 'oper',
-      createUser             => true,
       downloadDir            => '/install',
       zipExtract             => false,
     }
@@ -171,7 +242,6 @@ or
       oracleHome             => '/oracle/product/11.2/db',
       eeOptionsSelection     => true,
       eeOptionalComponents   => 'oracle.rdbms.partitioning:11.2.0.4.0,oracle.oraolap:11.2.0.4.0,oracle.rdbms.dm:11.2.0.4.0,oracle.rdbms.dv:11.2.0.4.0,oracle.rdbms.lbac:11.2.0.4.0,oracle.rdbms.rat:11.2.0.4.0',
-      createUser             => true,
       user                   => 'oracle',
       group                  => 'dba',
       group_install          => 'oinstall',
@@ -189,7 +259,6 @@ or
       databaseType           => 'SE',
       oracleBase             => '/oracle',
       oracleHome             => '/oracle/product/11.2/db',
-      createUser             => true,
       user                   => 'oracle',
       group                  => 'dba',
       group_install          => 'oinstall',
@@ -207,7 +276,6 @@ or
       databaseType  => 'SE',
       oracleBase    => '/oracle',
       oracleHome    => '/oracle/product/11.2/db',
-      createUser    => true,
       user          => 'oracle',
       group         => 'dba',
       group_install => 'oinstall',
@@ -342,7 +410,7 @@ Listener
       oracleHome   => '/oracle/product/11.2/db',
       user         => 'oracle',
       group        => 'dba',
-      action       => 'start',
+      action       => 'stop',
       require      => Oradb::Net['config net8'],
     }
 
@@ -360,21 +428,23 @@ Database instance
     oradb::database{ 'testDb_Create':
       oracleBase              => '/oracle',
       oracleHome              => '/oracle/product/11.2/db',
-      version                 => '11.2' or "12.1",
+      version                 => '11.2',
       user                    => 'oracle',
       group                   => 'dba',
       downloadDir             => '/install',
       action                  => 'create',
       dbName                  => 'test',
       dbDomain                => 'oracle.com',
-      dbPort                  => '1521', #optional
+      dbPort                  => '1521',
       sysPassword             => 'Welcome01',
       systemPassword          => 'Welcome01',
       dataFileDestination     => "/oracle/oradata",
       recoveryAreaDestination => "/oracle/flash_recovery_area",
       characterSet            => "AL32UTF8",
       nationalCharacterSet    => "UTF8",
-      initParams              => "open_cursors=1000,processes=600,job_queue_processes=4",
+      initParams              => {'open_cursors'        => '1000',
+                                  'processes'           => '600',
+                                  'job_queue_processes' => '4' },
       sampleSchema            => 'TRUE',
       memoryPercentage        => "40",
       memoryTotal             => "800",
@@ -382,6 +452,11 @@ Database instance
       emConfiguration         => "NONE",
       require                 => Oradb::Listener['start listener'],
     }
+
+you can also use a comma separated string for initParams
+
+      initParams              => "open_cursors=1000,processes=600,job_queue_processes=4",
+
 
 or based on your own template
 
@@ -411,6 +486,63 @@ Click here for an [11.2 db asm instance template example](https://github.com/bie
       memoryPercentage        => "40",
       memoryTotal             => "800",
       require                 => Oradb::Listener['start listener'],
+    }
+
+12c container and pluggable databases
+
+    oradb::database{ 'oraDb':
+      oracleBase              => '/oracle',
+      oracleHome              => '/oracle/product/12.1/db',
+      version                 => '12.1',
+      user                    => 'oracle',
+      group                   => 'dba'
+      downloadDir             => '/install',
+      action                  => 'create',
+      dbName                  => 'orcl',
+      dbDomain                => 'example.com',
+      sysPassword             => 'Welcome01',
+      systemPassword          => 'Welcome01',
+      characterSet            => 'AL32UTF8',
+      nationalCharacterSet    => 'UTF8',
+      sampleSchema            => 'FALSE',
+      memoryPercentage        => '40',
+      memoryTotal             => '800',
+      databaseType            => 'MULTIPURPOSE',
+      emConfiguration         => 'NONE',
+      dataFileDestination     => '/oracle/oradata',
+      recoveryAreaDestination => '/oracle/flash_recovery_area',
+      initParams              => {'open_cursors'        => '1000',
+                                  'processes'           => '600',
+                                  'job_queue_processes' => '4' },
+      containerDatabase       => true,   <|-------
+    }
+
+    oradb::database_pluggable{'pdb1':
+      ensure                   => 'present',
+      version                  => '12.1',
+      oracle_home_dir          => '/oracle/product/12.1/db',
+      user                     => 'oracle',
+      group                    => 'dba',
+      source_db                => 'orcl',
+      pdb_name                 => 'pdb1',
+      pdb_admin_username       => 'pdb_adm',
+      pdb_admin_password       => 'Welcome01',
+      pdb_datafile_destination => "/oracle/oradata/orcl/pdb1",
+      create_user_tablespace   => true,
+      log_output               => true,
+    }
+
+    # remove the pluggable database
+    oradb::database_pluggable{'pdb1':
+      ensure                   => 'absent',
+      version                  => '12.1',
+      oracle_home_dir          => '/oracle/product/12.1/db',
+      user                     => 'oracle',
+      group                    => 'dba',
+      source_db                => 'orcl',
+      pdb_name                 => 'pdb1',
+      pdb_datafile_destination => "/oracle/oradata/orcl/pdb1",
+      log_output               => true,
     }
 
 or delete a database
@@ -691,7 +823,6 @@ Tnsnames.ora
         oracleBase             => hiera('oracle_base_dir'),
         oracleHome             => hiera('oracle_home_dir'),
         userBaseDir            => '/home',
-        createUser             => false,
         user                   => hiera('oracle_os_user'),
         group                  => 'dba',
         group_install          => 'oinstall',
@@ -704,16 +835,16 @@ Tnsnames.ora
       }
 
       oradb::opatchupgrade{'112000_opatch_upgrade_db':
-          oracleHome             => hiera('oracle_home_dir'),
-          patchFile              => 'p6880880_112000_Linux-x86-64.zip',
-          csiNumber              => undef,
-          supportId              => undef,
-          opversion              => '11.2.0.3.6',
-          user                   => hiera('oracle_os_user'),
-          group                  => hiera('oracle_os_group'),
-          downloadDir            => hiera('oracle_download_dir'),
-          puppetDownloadMntPoint => hiera('oracle_source'),
-          require                => Oradb::Installdb['db_linux-x64'],
+        oracleHome             => hiera('oracle_home_dir'),
+        patchFile              => 'p6880880_112000_Linux-x86-64.zip',
+        csiNumber              => undef,
+        supportId              => undef,
+        opversion              => '11.2.0.3.6',
+        user                   => hiera('oracle_os_user'),
+        group                  => hiera('oracle_os_group'),
+        downloadDir            => hiera('oracle_download_dir'),
+        puppetDownloadMntPoint => hiera('oracle_source'),
+        require                => Oradb::Installdb['db_linux-x64'],
       }
 
       oradb::opatch{'19791420_db_patch':
@@ -813,7 +944,6 @@ Tnsnames.ora
       file                   => 'linuxamd64_12c_client.zip',
       oracleBase             => '/oracle',
       oracleHome             => '/oracle/product/12.1/client',
-      createUser             => true,
       user                   => 'oracle',
       group                  => 'dba',
       group_install          => 'oinstall',
@@ -830,7 +960,6 @@ or
       file                   => 'linux.x64_11gR2_client.zip',
       oracleBase             => '/oracle',
       oracleHome             => '/oracle/product/11.2/client',
-      createUser             => true,
       user                   => 'oracle',
       group                  => 'dba',
       group_install          => 'oinstall',
@@ -979,47 +1108,31 @@ In combination with the oracle puppet module from hajee you can create/change a 
         managehome  => true,
       }
 
-      file { "/oracle/product" :
-        ensure        => directory,
-        recurse       => false,
-        replace       => false,
-        mode          => 0775,
-        group         => hiera('oracle_os_group'),
-      }
-
       oradb::goldengate{ 'ggate12.1.2':
         version                 => '12.1.2',
         file                    => '121200_fbo_ggs_Linux_x64_shiphome.zip',
         databaseType            => 'Oracle',
         databaseVersion         => 'ORA11g',
-        databaseHome            => '/oracle/product/11.2/db',
+        databaseHome            => '/oracle/product/12.1/db',
         oracleBase              => '/oracle',
-        goldengateHome          => "/oracle/product/12.1.2/ggate",
+        goldengateHome          => "/oracle/product/12.1/ggate",
         managerPort             => 16000,
         user                    => 'ggate',
         group                   => 'dba',
         group_install           => 'oinstall',
         downloadDir             => '/install',
         puppetDownloadMntPoint  => hiera('oracle_source'),
-        require                 => File["/oracle/product"],
-      }
-
-      file { "/oracle/product/12.1.2/ggate/OPatch" :
-        ensure        => directory,
-        recurse       => true,
-        replace       => false,
-        mode          => 0775,
-        group         => hiera('oracle_os_group'),
-        require       => Oradb::Goldengate['ggate12.1.2'],
+        require                 => User['ggate'],
       }
 
       file { "/oracle/product/11.2.1" :
         ensure        => directory,
         recurse       => false,
         replace       => false,
-        mode          => 0775,
+        mode          => '0775',
         owner         => 'ggate',
-        group         => hiera('oracle_os_group'),
+        group         => 'dba',
+        require       => Oradb::Goldengate['ggate12.1.2'],
       }
 
       oradb::goldengate{ 'ggate11.2.1':
@@ -1027,11 +1140,11 @@ In combination with the oracle puppet module from hajee you can create/change a 
         file                    => 'ogg112101_fbo_ggs_Linux_x64_ora11g_64bit.zip',
         tarFile                 => 'fbo_ggs_Linux_x64_ora11g_64bit.tar',
         goldengateHome          => "/oracle/product/11.2.1/ggate",
-        user                    => hiera('ggate_os_user'),
-        group                   => hiera('oracle_os_group'),
+        user                    => 'ggate',
+        group                   => 'dba',
         downloadDir             => '/install',
-        puppetDownloadMntPoint  =>  hiera('oracle_source'),
-        require                 => [File["/oracle/product"],File["/oracle/product/11.2.1"]]
+        puppetDownloadMntPoint  => hiera('oracle_source'),
+        require                 => File["/oracle/product/11.2.1"],
       }
 
       oradb::goldengate{ 'ggate11.2.1_java':
@@ -1039,12 +1152,12 @@ In combination with the oracle puppet module from hajee you can create/change a 
         file                    => 'V38714-01.zip',
         tarFile                 => 'ggs_Adapters_Linux_x64.tar',
         goldengateHome          => "/oracle/product/11.2.1/ggate_java",
-        user                    => hiera('ggate_os_user'),
-        group                   => hiera('oracle_os_group'),
+        user                    => 'ggate',
+        group                   => 'dba',
         group_install           => 'oinstall',
         downloadDir             => '/install',
-        puppetDownloadMntPoint  =>  hiera('oracle_source'),
-        require                 => [File["/oracle/product"],File["/oracle/product/11.2.1"]]
+        puppetDownloadMntPoint  => hiera('oracle_source'),
+        require                 => File["/oracle/product/11.2.1"],
       }
 
 ## Oracle SOA Suite Repository Creation Utility (RCU)
@@ -1131,71 +1244,6 @@ OIM, OAM repository, OIM needs an Oracle Enterprise Edition database
       logoutput              => true,
       require                => Oradb::Dbactions['start oimDb'],
      }
-
-
-## Linux kernel, ulimits and required packages
-
-install the following module to set the database kernel parameters
-*puppet module install fiddyspence-sysctl*
-
-install the following module to set the database user limits parameters
-*puppet module install erwbgy-limits*
-
-       $all_groups = ['oinstall','dba' ,'oper']
-
-       group { $all_groups :
-         ensure      => present,
-       }
-
-       user { 'oracle' :
-         ensure      => present,
-         uid         => 500,
-         gid         => 'oinstall',
-         groups      => ['oinstall','dba','oper'],
-         shell       => '/bin/bash',
-         password    => '$1$DSJ51vh6$4XzzwyIOk6Bi/54kglGk3.',
-         home        => "/home/oracle",
-         comment     => "This user oracle was created by Puppet",
-         require     => Group[$all_groups],
-         managehome  => true,
-       }
-
-       sysctl { 'kernel.msgmnb':                 ensure => 'present', permanent => 'yes', value => '65536',}
-       sysctl { 'kernel.msgmax':                 ensure => 'present', permanent => 'yes', value => '65536',}
-       sysctl { 'kernel.shmmax':                 ensure => 'present', permanent => 'yes', value => '2588483584',}
-       sysctl { 'kernel.shmall':                 ensure => 'present', permanent => 'yes', value => '2097152',}
-       sysctl { 'fs.file-max':                   ensure => 'present', permanent => 'yes', value => '6815744',}
-       sysctl { 'net.ipv4.tcp_keepalive_time':   ensure => 'present', permanent => 'yes', value => '1800',}
-       sysctl { 'net.ipv4.tcp_keepalive_intvl':  ensure => 'present', permanent => 'yes', value => '30',}
-       sysctl { 'net.ipv4.tcp_keepalive_probes': ensure => 'present', permanent => 'yes', value => '5',}
-       sysctl { 'net.ipv4.tcp_fin_timeout':      ensure => 'present', permanent => 'yes', value => '30',}
-       sysctl { 'kernel.shmmni':                 ensure => 'present', permanent => 'yes', value => '4096', }
-       sysctl { 'fs.aio-max-nr':                 ensure => 'present', permanent => 'yes', value => '1048576',}
-       sysctl { 'kernel.sem':                    ensure => 'present', permanent => 'yes', value => '250 32000 100 128',}
-       sysctl { 'net.ipv4.ip_local_port_range':  ensure => 'present', permanent => 'yes', value => '9000 65500',}
-       sysctl { 'net.core.rmem_default':         ensure => 'present', permanent => 'yes', value => '262144',}
-       sysctl { 'net.core.rmem_max':             ensure => 'present', permanent => 'yes', value => '4194304', }
-       sysctl { 'net.core.wmem_default':         ensure => 'present', permanent => 'yes', value => '262144',}
-       sysctl { 'net.core.wmem_max':             ensure => 'present', permanent => 'yes', value => '1048576',}
-
-       class { 'limits':
-         config => {
-                    '*'       => { 'nofile'  => { soft => '2048'   , hard => '8192',   },},
-                    'oracle'  => { 'nofile'  => { soft => '65536'  , hard => '65536',  },
-                                    'nproc'  => { soft => '2048'   , hard => '16384',  },
-                                    'stack'  => { soft => '10240'  ,},},
-                    },
-         use_hiera => false,
-       }
-
-       $install = [ 'binutils.x86_64', 'compat-libstdc++-33.x86_64', 'glibc.x86_64','ksh.x86_64','libaio.x86_64',
-                    'libgcc.x86_64', 'libstdc++.x86_64', 'make.x86_64','compat-libcap1.x86_64', 'gcc.x86_64',
-                    'gcc-c++.x86_64','glibc-devel.x86_64','libaio-devel.x86_64','libstdc++-devel.x86_64',
-                    'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.x86_64','libXtst.x86_64']
-
-       package { $install:
-         ensure  => present,
-       }
 
 ## Solaris 10 kernel, ulimits and required packages
 

@@ -31,7 +31,6 @@ define oradb::opatch(
   $puppetDownloadMntPoint  = undef,
   $remoteFile              = true,
 )
-
 {
   $execPath = '/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:'
 
@@ -58,11 +57,12 @@ define oradb::opatch(
       # the patch used by the opatch
       if ! defined(File["${downloadDir}/${patchFile}"]) {
         file { "${downloadDir}/${patchFile}":
-          ensure => present,
-          source => "${mountPoint}/${patchFile}",
-          mode   => '0775',
-          owner  => $user,
-          group  => $group,
+          ensure  => present,
+          source  => "${mountPoint}/${patchFile}",
+          mode    => '0775',
+          owner   => $user,
+          group   => $group,
+          require => File[$downloadDir],
         }
       }
     }
