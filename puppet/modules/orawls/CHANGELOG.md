@@ -1,6 +1,40 @@
 # History
 
+## 1.0.31
+- wls_jms_queue, new attribute forwarddelay
+- wls_foreign_server_object, bug when removing object plus also removing dependencies
+- wls_cluster, new attribute clusteraddress
+- nodemanager.properties was overwritten in case of weblogic 12c and a domain extension
+- nodemanager with 12c didn't start when log_dir was empty
+
+## 1.0.30
+- download dir dependency cycle error between weblogic and domain manifest.
+- bsu unzip -o option instead of -n so the new readme is also added to the cache_dir
+- wls_server, new attributes log_redirect_stderr_to_server, log_redirect_stdout_to_server, restart_max, log_http_file_count, log_http_number_of_files_limited, bea_home
+- wls_jmsserver, new attributes bytes_maximum, allows_persistent_downgrade
+- wls_datasource, new attributes secondstotrustidlepoolconnection, testfrequency, connectioncreationretryfrequency
+- wls_server_channnel, new attributes publicport, max_message_size
+
+## 1.0.29
+- calculated_listen_port attribute for wls_dynamic_cluster
+- mincapacity, statementcachesize, testconnectionsonreserve for wls_datasource
+- wls_managedserver type fix when target is cluster, doesn't use ps -ef but uses wlst to check the cluster status
+- new wls_messaging_bridge wls type
+- new wls_jms_bridge_destination wls type
+- wls_setting added a 'default' entry in wls_settings.yaml even when default is not used
+
+## 1.0.28
+- new wls_identity_asserter type for customising default identy asserter
+- xaproperties attributes in wls_datasource
+- better error handling for wls_authentication_provider ordering
+- option to skip the OPSS security store migration from file to the database in fmwcluster.pp
+- Custom type for oracle weblogic/domain directory structure instead of using a structure manifest
+- logintimeout attribute for wls_server
+- added some extra autorequire on wls resource types
+
 ## 1.0.27
+- bug fixes in auto require and post classpath parameter bug when running in debug mode
+- wls_multi_datasource resource type added
 
 ## 1.0.26
 - auto require based on the wls resource parameters, no need to use require on the all wls resource types

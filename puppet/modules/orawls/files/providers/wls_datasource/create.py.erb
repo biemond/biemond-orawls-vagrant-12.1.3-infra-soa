@@ -3,23 +3,29 @@ real_domain='<%= domain %>'
 
 
 
-name                       = '<%= datasource_name %>'
-password                   = '<%= password %>'
-target                     = '<%= target %>'
-targettype                 = '<%= targettype %>'
-drivername                 = '<%= drivername %>'
-jndinames                  = '<%= jndinames %>'
-url                        = '<%= url %>'
-usexa                      = '<%= usexa %>'
-user                       = '<%= user %>'
-testtablename              = '<%= testtablename %>'
-globaltransactionsprotocol = '<%= globaltransactionsprotocol %>'
-extraproperties            = '<%= extraproperties %>'
-maxcapacity                = '<%= maxcapacity %>'
-initialcapacity            = '<%= initialcapacity %>'
-fanenabled                 = '<%= fanenabled %>'
-onsnodelist                = '<%= onsnodelist %>'
-
+name                                    = '<%= datasource_name %>'
+password                                = '<%= password %>'
+target                                  = '<%= target %>'
+targettype                              = '<%= targettype %>'
+drivername                              = '<%= drivername %>'
+jndinames                               = '<%= jndinames %>'
+url                                     = '<%= url %>'
+usexa                                   = '<%= usexa %>'
+user                                    = '<%= user %>'
+testtablename                           = '<%= testtablename %>'
+globaltransactionsprotocol              = '<%= globaltransactionsprotocol %>'
+extraproperties                         = '<%= extraproperties %>'
+xaproperties                            = '<%= xaproperties %>'
+maxcapacity                             = '<%= maxcapacity %>'
+initialcapacity                         = '<%= initialcapacity %>'
+fanenabled                              = '<%= fanenabled %>'
+onsnodelist                             = '<%= onsnodelist %>'
+mincapacity                             = '<%= mincapacity %>'
+statementcachesize                      = '<%= statementcachesize %>'
+testconnectionsonreserve                = '<%= testconnectionsonreserve %>'
+secondstotrustidlepoolconnection        = '<%= secondstotrustidlepoolconnection %>'
+testfrequency                           = '<%= testfrequency  %>'
+connectioncreationretryfrequency        = '<%= connectioncreationretryfrequency %>'
 
 edit()
 startEdit()
@@ -49,6 +55,25 @@ try:
     set('MaxCapacity', int(maxcapacity))
     set('InitialCapacity', int(initialcapacity))
 
+    if mincapacity:
+       set('MinCapacity',int(mincapacity))
+
+    if statementcachesize:
+       set('StatementCacheSize',int(statementcachesize))
+
+    if testconnectionsonreserve and testconnectionsonreserve == '1':
+       set('TestConnectionsOnReserve','true')
+    else:
+       set('TestConnectionsOnReserve','false')
+
+    if secondstotrustidlepoolconnection:
+      set('SecondsToTrustAnIdlePoolConnection', int(secondstotrustidlepoolconnection))
+
+    if testfrequency:
+      set('TestFrequencySeconds', int(testfrequency))
+
+    if connectioncreationretryfrequency:
+      set('ConnectionCreationRetryFrequencySeconds', int(connectioncreationretryfrequency))
 
     cd('/JDBCSystemResources/' + name + '/JDBCResource/' + name + '/JDBCConnectionPoolParams/' + name )
     cmo.setTestTableName(testtablename)
@@ -66,6 +91,20 @@ try:
         cmo.createProperty(propname)
         cd('/JDBCSystemResources/' + name + '/JDBCResource/' + name + '/JDBCDriverParams/' + name + '/Properties/' + name + '/Properties/'+propname)
         cmo.setValue(val)
+
+    if usexa == '1' and xaproperties:
+      xapropertiesarray=String(xaproperties).split(",")
+      for xaproperty in xapropertiesarray:
+        propname, val = xaproperty.split("=")
+        # Converts to integer (for numbers and booleans too)
+        if val.isnumeric():
+            val = int(val)
+        cd('/JDBCSystemResources/' + name + '/JDBCResource/' + name + '/JDBCXAParams/' + name )
+        try:
+            methodToCall = getattr(cmo, 'set'+propname)
+            methodToCall(val)
+        except AttributeError:
+            print "%s is not a valid attribute type" % (propname)
 
     cd('/JDBCSystemResources/' + name + '/JDBCResource/' + name + '/JDBCDataSourceParams/' + name)
     cmo.setGlobalTransactionsProtocol(globaltransactionsprotocol)
@@ -104,5 +143,4 @@ except:
     stopEdit('y')
     print "~~~~COMMAND FAILED~~~~"
     raise
-
 

@@ -259,7 +259,8 @@ define orawls::domain (
 
     if $log_dir == undef {
       $admin_nodemanager_log_dir = "${domain_dir}/servers/${adminserver_name}/logs"
-      $nodemanager_log_dir       = "${domain_dir}/nodemanager/nodemanager.log"
+      $nodeMgrLogDir             = "${domain_dir}/nodemanager/nodemanager.log"
+      
 
       $osb_nodemanager_log_dir   = "${domain_dir}/servers/osb_server1/logs"
       $soa_nodemanager_log_dir   = "${domain_dir}/servers/soa_server1/logs"
@@ -314,18 +315,16 @@ define orawls::domain (
       }
     }
 
-    if !defined(File[$download_dir]) {
-      file { $download_dir:
-        ensure => directory,
-        mode   => '0775',
-        owner  => $os_user,
-        group  => $os_group,
-      }
-    }
+    # if !defined(File[$download_dir]) {
+    #   file { $download_dir:
+    #     ensure => directory,
+    #     mode   => '0777',
+    #   }
+    # }
 
     # the utils.py used by the wlst
-    if !defined(File['utils.py']) {
-      file { 'utils.py':
+    if !defined(File["${download_dir}/utils.py"]) {
+      file { "${download_dir}/utils.py":
         ensure  => present,
         path    => "${download_dir}/utils.py",
         content => template('orawls/domains/utils.py.erb'),
@@ -334,7 +333,7 @@ define orawls::domain (
         mode    => '0775',
         owner   => $os_user,
         group   => $os_group,
-        require => File[$download_dir],
+        # require => File[$download_dir],
       }
     }
 
@@ -348,7 +347,7 @@ define orawls::domain (
         mode    => '0775',
         owner   => $os_user,
         group   => $os_group,
-        require => File[$download_dir],
+        # require => File[$download_dir],
         before  => File["domain.py ${domain_name} ${title}"],
       }
     }
@@ -363,8 +362,7 @@ define orawls::domain (
       mode    => '0775',
       owner   => $os_user,
       group   => $os_group,
-      require => [File[$download_dir],
-                  File['utils.py'],],
+      require => File["${download_dir}/utils.py"],
     }
 
     if ( $domains_dir == "${middleware_home_dir}/user_projects/domains"){
@@ -459,7 +457,7 @@ define orawls::domain (
       creates     => $domain_dir,
       cwd         => $download_dir,
       require     => [File["domain.py ${domain_name} ${title}"],
-                      File['utils.py'],
+                      File["${download_dir}/utils.py"],
                       File[$domains_dir],],
       timeout     => 0,
       path        => $exec_path,
@@ -613,12 +611,20 @@ define orawls::domain (
 
     # set our 12.1.2 nodemanager properties
     if ($version == 1212 or $version == 1213) {
+
+      # If we are using an extension template make sure we depend on that or our properties will get overwritten
+      if($extensionsTemplateFile) {
+        $dependsExtension = "execwlst ${domain_name} extension ${title}"
+      } else {
+        $dependsExtension = "execwlst ${domain_name} ${title}"
+      }
+
       file { "nodemanager.properties ux ${version} ${title}":
         ensure  => present,
         path    => "${nodeMgrHome}/nodemanager.properties",
         replace => true,
         content => template("orawls/nodemgr/nodemanager.properties_${version}.erb"),
-        require => Exec["execwlst ${domain_name} ${title}"],
+        require => Exec[$dependsExtension],
         mode    => '0775',
         owner   => $os_user,
         group   => $os_group,

@@ -54,10 +54,17 @@ module Puppet
     property :testtablename
     property :globaltransactionsprotocol
     property :extraproperties
+    property :xaproperties
     property :maxcapacity
     property :initialcapacity
     property :fanenabled
     property :onsnodelist
+    property :mincapacity
+    property :statementcachesize
+    property :testconnectionsonreserve
+    property :secondstotrustidlepoolconnection
+    property :testfrequency
+    property :connectioncreationretryfrequency
 
     add_title_attributes(:datasource_name) do
       /^((.*\/)?(.*)?)$/
