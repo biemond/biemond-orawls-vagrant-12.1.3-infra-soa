@@ -10,6 +10,9 @@ hosts:
   'soa2admin2.example.com':
     ip:                "10.10.10.21"
     host_aliases:      'soa2admin2'
+  'soa2node2.example.com':
+    ip:                "10.10.10.22"
+    host_aliases:      'soa2node2'
   'mft1admin.example.com':
     ip:                "10.10.10.71"
     host_aliases:      'mft1admin'
@@ -32,7 +35,7 @@ wls_log_dir:              &wls_log_dir              "/var/log/weblogic"
 
 wls_jsse_enabled:         true
 
-#WebLogic installation variables 
+#WebLogic installation variables
 orawls::weblogic::version:              *wls_version
 orawls::weblogic::filename:             "fmw_12.1.3.0.0_infrastructure.jar"
 orawls::weblogic::fmw_infra:            true

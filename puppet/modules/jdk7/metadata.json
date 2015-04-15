@@ -1,13 +1,24 @@
 {
   "name": "biemond-jdk7",
-  "version": "0.4.3",
+  "version": "0.4.10",
   "summary": "Oracle JDK7 & JDK8 puppet module optimized for weblogic urandom rngd entropy",
   "author": "Edwin Biemond",
-  "dependencies": [],
+  "dependencies": [
+
+  ],
   "source": "https://github.com/biemond/biemond-jdk7",
   "project_page": "https://github.com/biemond/biemond-jdk7",
-  "license": "Apache 2.0",
-  "tags": ["jdk7", "jdk8", "oracle","java", "rngd", "rng-tools","urandom", "entropy"],
+  "license": "Apache-2.0",
+  "tags": [
+    "jdk7",
+    "jdk8",
+    "oracle",
+    "java",
+    "rngd",
+    "rng-tools",
+    "urandom",
+    "entropy"
+  ],
   "operatingsystem_support": [
     {
       "operatingsystem": "RedHat",
@@ -74,5 +85,5 @@
       "name": "puppet",
       "version_requirement": ">=2.7.20"
     }
-  ]   
+  ]
 }

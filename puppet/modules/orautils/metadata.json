@@ -6,7 +6,7 @@
   "dependencies": [],
   "source": "https://github.com/biemond/biemond-orautils",
   "project_page": "https://github.com/biemond/biemond-orautils",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "tags": ["weblogic", "java", "oracle","fmw", "middleware", "fusion","osb", "soa"],
   "operatingsystem_support": [
     {
