@@ -65,7 +65,7 @@ domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properti
 domain_instances:
   'soa_domain':
     version:                  *wls_version
-    domain_template:          "soa"
+    domain_template:          "osb_soa_bpm"
     bam_enabled:              true
     b2b_enabled:              false
     ess_enabled:              false
