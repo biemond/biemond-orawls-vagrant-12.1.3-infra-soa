@@ -67,8 +67,8 @@ domain_instances:
     version:                  *wls_version
     domain_template:          "osb_soa_bpm"
     bam_enabled:              true
-    b2b_enabled:              false
-    ess_enabled:              false
+    b2b_enabled:              true
+    ess_enabled:              true
     development_mode:         true
     log_output:               *logoutput
     nodemanager_address:      "10.10.10.21"
