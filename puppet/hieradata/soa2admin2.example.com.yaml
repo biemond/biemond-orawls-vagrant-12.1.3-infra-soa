@@ -86,6 +86,24 @@ domain_instances:
     repository_sys_password:  "Welcome01"
     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
+# # create a soa domain
+# domain_instances:
+#   'soa_domain':
+#     version:                  *wls_version
+#     domain_template:          "soa_bpm"
+#     bam_enabled:              false
+#     b2b_enabled:              true
+#     ess_enabled:              true
+#     development_mode:         true
+#     log_output:               *logoutput
+#     nodemanager_address:      "10.10.10.21"
+#     repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
+#     repository_prefix:        "DEV"
+#     repository_password:      "Welcome01"
+#     repository_sys_password:  "Welcome01"
+#     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
+
+
 wls_setting_instances:
   'default':
     user:               *wls_os_user
@@ -134,35 +152,50 @@ fmw_cluster_instances:
     ess_enabled:          true
     repository_prefix:    "DEV"
 
-# fmwlogdir_instances:
-#   'AdminServer':
-#      log_output:      true
-#      server:          'AdminServer'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
-#   'SoaServer1':
-#      log_output:      true
-#      server:          'SoaServer1'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
-#   'BamServer1':
-#      log_output:      true
-#      server:          'BamServer1'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
-#   'OsbServer1':
-#      log_output:      true
-#      server:          'OsbServer1'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
-#   'SoaServer2':
-#      log_output:      true
-#      server:          'SoaServer2'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
-#   'BamServer2':
-#      log_output:      true
-#      server:          'BamServer2'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
-#   'OsbServer2':
-#      log_output:      true
-#      server:          'OsbServer2'
-#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+# # fmw cluster
+# fmw_cluster_instances:
+#   'soaCluster':
+#     domain_name:          "soa_domain"
+#     soa_cluster_name:     "SoaCluster"
+#     log_output:           *logoutput
+#     bpm_enabled:          true
+#     bam_enabled:          false
+#     soa_enabled:          true
+#     osb_enabled:          false
+#     b2b_enabled:          true
+#     ess_enabled:          true
+#     repository_prefix:    "DEV"
+
+
+fmwlogdir_instances:
+  'AdminServer':
+     log_output:      true
+     server:          'AdminServer'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'SoaServer1':
+     log_output:      true
+     server:          'SoaServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'BamServer1':
+     log_output:      true
+     server:          'BamServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'OsbServer1':
+     log_output:      true
+     server:          'OsbServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'SoaServer2':
+     log_output:      true
+     server:          'SoaServer2'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'BamServer2':
+     log_output:      true
+     server:          'BamServer2'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'OsbServer2':
+     log_output:      true
+     server:          'OsbServer2'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
 
 
 machines_instances:
