@@ -49,6 +49,14 @@ fmw_installations:
     log_output:              true
     remote_file:             false
 
+opatch_instances:
+  '20423408':
+    oracle_product_home_dir:  *wls_middleware_home_dir
+    patch_id:                 "20423408"
+    patch_file:               "p20423408_121300_Generic.zip"
+    log_output:               true
+    remote_file:              false
+
 # when you have just one domain on a server
 domain_name:                &domain_name                "soa_domain"
 domain_adminserver:         &domain_adminserver         "AdminServer"
@@ -126,35 +134,35 @@ fmw_cluster_instances:
     ess_enabled:          true
     repository_prefix:    "DEV"
 
-fmwlogdir_instances:
-  'AdminServer':
-     log_output:      true
-     server:          'AdminServer'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'SoaServer1':
-     log_output:      true
-     server:          'SoaServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'BamServer1':
-     log_output:      true
-     server:          'BamServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'OsbServer1':
-     log_output:      true
-     server:          'OsbServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'SoaServer2':
-     log_output:      true
-     server:          'SoaServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'BamServer2':
-     log_output:      true
-     server:          'BamServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'OsbServer2':
-     log_output:      true
-     server:          'OsbServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
+# fmwlogdir_instances:
+#   'AdminServer':
+#      log_output:      true
+#      server:          'AdminServer'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'SoaServer1':
+#      log_output:      true
+#      server:          'SoaServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'BamServer1':
+#      log_output:      true
+#      server:          'BamServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'OsbServer1':
+#      log_output:      true
+#      server:          'OsbServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'SoaServer2':
+#      log_output:      true
+#      server:          'SoaServer2'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'BamServer2':
+#      log_output:      true
+#      server:          'BamServer2'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'OsbServer2':
+#      log_output:      true
+#      server:          'OsbServer2'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
 
 
 machines_instances:

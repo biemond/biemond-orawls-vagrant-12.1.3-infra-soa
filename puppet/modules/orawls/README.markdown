@@ -112,11 +112,11 @@ all templates creates a WebLogic domain, logs the domain creation output
 
 - domain 'standard'    -> a default WebLogic
 - domain 'adf'         -> JRF + EM + Coherence (12.1.2 & 12.1.3) + OWSM (12.1.2 & 12.1.3) + JAX-WS Advanced + Soap over JMS (12.1.2 & 12.1.3)
-- domain 'osb'         -> OSB + JRF + EM + OWSM
-- domain 'osb_soa'     -> OSB + SOA Suite + BAM + JRF + EM + OWSM
-- domain 'osb_soa_bpm' -> OSB + SOA Suite + BAM + BPM + JRF + EM + OWSM
-- domain 'soa'         -> SOA Suite + BAM + JRF + EM + OWSM
-- domain 'soa_bpm'     -> SOA Suite + BAM + BPM + JRF + EM + OWSM
+- domain 'osb'         -> OSB + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'osb_soa'     -> OSB + SOA Suite + BAM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'osb_soa_bpm' -> OSB + SOA Suite + BAM + BPM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'soa'         -> SOA Suite + BAM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'soa_bpm'     -> SOA Suite + BAM + BPM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
 - domain 'wc_wcc_bpm'  -> WC (webcenter) + WCC ( Content ) + BPM + JRF + EM + OWSM
 - domain 'wc'          -> WC (webcenter) + JRF + EM + OWSM
 - domain 'oim'         -> OIM (Oracle Identity Manager) + OAM ( Oracle Access Manager)
@@ -888,6 +888,7 @@ FMW 11g, 12.1.2 , 12.1.3 ADF domain with webtier
          repository_database_url:  "jdbc:oracle:thin:@wlsdb.example.com:1521/wlsrepos.example.com"
          repository_prefix:        "DEV"
          repository_password:      "Welcome01"
+         repository_sys_user:      "sys"
          repository_sys_password:  "Welcome01"
          rcu_database_url:         "wlsdb.example.com:1521:wlsrepos.example.com"
          webtier_enabled:          true
@@ -916,6 +917,7 @@ FMW 11g WebLogic OIM / OAM domain
         repository_database_url:  "jdbc:oracle:thin:@oimdb.example.com:1521/oimrepos.example.com"
         repository_prefix:        "DEV"
         repository_password:      "Welcome01"
+        repository_sys_user:      "sys"
         repository_sys_password:  "Welcome01"
         rcu_database_url:         "oimdb.example.com:1521/oimrepos.example.com"
 
@@ -935,6 +937,7 @@ FMW 12.1.3 WebLogic SOA Suite domain
         repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
         repository_prefix:        "DEV"
         repository_password:      "Welcome01"
+        repository_sys_user:      "sys"
         repository_sys_password:  "Welcome01"
         rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
@@ -950,6 +953,7 @@ FMW 12.1.3 WebLogic OSB domain
          repository_database_url:  "jdbc:oracle:thin:@osbdb.example.com:1521/osbrepos.example.com"
          repository_prefix:        "DEV"
          repository_password:      "Welcome01"
+         repository_sys_user:      "sys"
          repository_sys_password:  "Welcome01"
          rcu_database_url:         "osbdb.example.com:1521:osbrepos.example.com"
 
@@ -1760,47 +1764,42 @@ or use puppet resource wls_deployment
     wls_deployment { 'jersey-bundle':
       ensure            => 'present',
       deploymenttype    => 'Library',
-      target            => ['AdminServer','WebCluster'],
-      targettype        => ['Server','Cluster'],
+      stagingmode       => 'nostage',
+      remote            => "1",
+      upload            => "1",
+      target            => ['AdminServer', 'WebCluster'],
+      targettype        => ['Server', 'Cluster'],
       versionidentifier => '1.18@1.18.0.0',
-      localpath         =>  '/vagrant/jersey-bundle-1.18.war',
-      timeout           => 60,
     }
-    # this will use default as wls_setting identifier
+
     wls_deployment { 'webapp':
       ensure            => 'present',
       deploymenttype    => 'AppDeployment',
-      target            => ['WebCluster'],
-      targettype        => ['Cluster'],
-      localpath         => '/vagrant/webapp.war',
-      timeout           => 60,
-    }
-
-or add a version
-
-    # this will use default as wls_setting identifier
-    wls_deployment { 'webapp':
-      ensure            => 'present',
-      deploymenttype    => 'AppDeployment',
+      stagingmode       => 'nostage',
+      remote            => "1",
+      upload            => "1",
       target            => ['WebCluster'],
       targettype        => ['Cluster'],
       versionidentifier => '1.1@1.1.0.0',
-      localpath         => '/vagrant/webapp.war',
+      require           => Wls_deployment['jersey-bundle']
     }
 
 
 in hiera
 
     $default_params = {}
-    $deployment_instances = hiera('deployment_library_instances', $default_params)
+    $deployment_instances = hiera('deployment_instances', $default_params)
     create_resources('wls_deployment',$deployment_instances, $default_params)
 
-    # this will use default as wls_setting identifier
-    deployment_library_instances:
+    deployment_instances:
       'jersey-bundle':
         ensure:            'present'
         deploymenttype:    'Library'
         versionidentifier: '1.18@1.18.0.0'
+        timeout:           60
+        stagingmode:       "nostage"
+        remote:            "1"
+        upload:            "1"
         target:
           - 'AdminServer'
           - 'WebCluster'
@@ -1808,24 +1807,24 @@ in hiera
           - 'Server'
           - 'Cluster'
         localpath:         '/vagrant/jersey-bundle-1.18.war'
-
-    $default_params = {}
-    $deployment_instances = hiera('deployment_application_instances', $default_params)
-    create_resources('wls_deployment',$deployment_instances, $default_params)
-
-    # this will use default as wls_setting identifier
-    deployment_application_instances:
+        require:
+           - Wls_cluster[WebCluster]
       'webapp':
         ensure:            'present'
         deploymenttype:    'AppDeployment'
         versionidentifier: '1.1@1.1.0.0'
+        timeout:           60
+        stagingmode:       "nostage"
+        remote:            "1"
+        upload:            "1"
         target:
-          - 'AdminServer'
           - 'WebCluster'
         targettype:
-          - 'Server'
           - 'Cluster'
         localpath:         '/vagrant/webapp.war'
+        require:
+           - Wls_deployment[jersey-bundle]
+           - Wls_cluster[WebCluster]
 
 
 ### wls_user

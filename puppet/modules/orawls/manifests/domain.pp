@@ -36,6 +36,7 @@ define orawls::domain (
   $rcu_database_url                      = undef,                                      #localhost:1521:XE"
   $repository_prefix                     = hiera('repository_prefix'             , 'DEV'),
   $repository_password                   = hiera('repository_password'           , 'Welcome01'),
+  $repository_sys_user                   = 'sys',
   $repository_sys_password               = undef,
   $custom_trust                          = hiera('wls_custom_trust'              , false),
   $trust_keystore_file                   = hiera('wls_trust_keystore_file'       , undef),
@@ -260,11 +261,12 @@ define orawls::domain (
     if $log_dir == undef {
       $admin_nodemanager_log_dir = "${domain_dir}/servers/${adminserver_name}/logs"
       $nodeMgrLogDir             = "${domain_dir}/nodemanager/nodemanager.log"
-      
+
 
       $osb_nodemanager_log_dir   = "${domain_dir}/servers/osb_server1/logs"
       $soa_nodemanager_log_dir   = "${domain_dir}/servers/soa_server1/logs"
       $bam_nodemanager_log_dir   = "${domain_dir}/servers/bam_server1/logs"
+      $ess_nodemanager_log_dir   = "${domain_dir}/servers/ess_server1/logs"
 
       $oim_nodemanager_log_dir   = "${domain_dir}/servers/oim_server1/logs"
       $oam_nodemanager_log_dir   = "${domain_dir}/servers/oam_server1/logs"
@@ -282,6 +284,8 @@ define orawls::domain (
       $osb_nodemanager_log_dir   = $log_dir
       $soa_nodemanager_log_dir   = $log_dir
       $bam_nodemanager_log_dir   = $log_dir
+      $ess_nodemanager_log_dir   = $log_dir
+
 
       $oim_nodemanager_log_dir   = $log_dir
       $oam_nodemanager_log_dir   = $log_dir
@@ -440,6 +444,7 @@ define orawls::domain (
           rcu_action                  => 'create',
           rcu_jdbc_url                => $repository_database_url,
           rcu_database_url            => $rcu_database_url,
+          rcu_sys_user                => $repository_sys_user,
           rcu_sys_password            => $repository_sys_password,
           rcu_prefix                  => $repository_prefix,
           rcu_password                => $repository_password,
@@ -559,6 +564,16 @@ define orawls::domain (
           user    => $os_user,
           group   => $os_group,
         }
+
+        exec { "setDERBY_FLAGOnFalse ${domain_name} ${title}":
+          command => "sed -e's/DERBY_FLAG=\"true\"/DERBY_FLAG=\"false\"/g' ${domain_dir}/bin/setDomainEnv.sh > /tmp/domain3.tmp && mv /tmp/domain3.tmp ${domain_dir}/bin/setDomainEnv.sh",
+          onlyif  => "/bin/grep DERBY_FLAG=\"true\" ${domain_dir}/bin/setDomainEnv.sh | /usr/bin/wc -l",
+          require => Exec["setOSBDebugFlagOnFalse ${domain_name} ${title}"],
+          path    => $exec_path,
+          user    => $os_user,
+          group   => $os_group,
+        }
+
       }
 
     } else {
@@ -586,6 +601,16 @@ define orawls::domain (
           user    => $os_user,
           group   => $os_group,
         }
+
+        exec { "setDERBY_FLAGOnFalse ${domain_name} ${title}":
+          command => "sed -i -e's/DERBY_FLAG=\"true\"/DERBY_FLAG=\"false\"/g' ${domain_dir}/bin/setDomainEnv.sh",
+          onlyif  => "/bin/grep DERBY_FLAG=\"true\" ${domain_dir}/bin/setDomainEnv.sh | /usr/bin/wc -l",
+          require => Exec["setOSBDebugFlagOnFalse ${domain_name} ${title}"],
+          path    => $exec_path,
+          user    => $os_user,
+          group   => $os_group,
+        }
+
       }
     }
 

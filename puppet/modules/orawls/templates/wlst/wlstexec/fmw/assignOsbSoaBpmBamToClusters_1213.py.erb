@@ -196,9 +196,9 @@ if soaEnabled == true:
 
     soaServers = getClusterServers(SOAClusterName)
     cd('/')
-    for n in range(len(soaServers)):
-      print "change servergroups for " + soaServers[n]
-      setServerGroups(soaServers[n] , soaServerGroup)
+    for i in range(len(soaServers)):
+      print "change servergroups for " + soaServers[i]
+      setServerGroups(soaServers[i] , soaServerGroup)
 
     print "delete old soa"
     delete('soa_server1', 'Server')
@@ -212,9 +212,9 @@ if osbEnabled == true:
 
     osbServers = getClusterServers(OSBClusterName)
     cd('/')
-    for p in range(len(osbServers)):
-      print "change servergroups for " + osbServers[p]
-      setServerGroups(osbServers[p] , osbServerGroup)
+    for i in range(len(osbServers)):
+      print "change servergroups for " + osbServers[i]
+      setServerGroups(osbServers[i] , osbServerGroup)
 
     print "delete old osb"
     delete('osb_server1', 'Server')
@@ -274,14 +274,36 @@ if bamEnabled == true:
 
     print "re-create BAM JMS"
     cd('/')
-    delete('BamCQServiceJmsSystemResource_bam_server1','JMSSystemResource')
-    delete('BamServerJmsSystemResource'               ,'JMSSystemResource')
+    try:
+        delete('BamCQServiceJmsSystemResource_bam_server1','JMSSystemResource')
+    except:
+        print "delete BamCQServiceJmsSystemResource_bam_server1 failed"
 
-    delete('BamCQServiceJmsServer_bam_server1'   ,'JMSServer')
-    delete('BamServerJmsServer_bam_server1'      ,'JMSServer')
+    try:
+        delete('BamServerJmsSystemResource','JMSSystemResource')
+    except:
+        print "delete BamServerJmsSystemResource failed"
 
-    delete('BamCQServiceJmsFileStore_bam_server1','FileStore')
-    delete('BamServerJmsFileStore_bam_server1'   ,'FileStore')
+    try:
+        delete('BamCQServiceJmsServer_bam_server1'   ,'JMSServer')
+    except:
+        print "Delete BamCQServiceJmsServer_bam_server1 failed"
+
+    try:
+        delete('BamServerJmsServer_bam_server1'      ,'JMSServer')
+    except:
+        print "Delete BamServerJmsServer_bam_server1 failed"
+
+    try:
+        delete('BamCQServiceJmsFileStore_bam_server1','FileStore')
+    except:
+        print "Delete BamCQServiceJmsFileStore_bam_server1 failed"
+
+    try:
+        delete('BamServerJmsFileStore_bam_server1'   ,'FileStore')
+    except:
+        print "Delete BamServerJmsFileStore_bam_server1 failed"
+
 
     print "create BAM JMS"
     createJMSServers(BAMClusterName, 'Bam', 1)
