@@ -12,8 +12,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     soa2admin2.vm.box_url = "https://dl.dropboxusercontent.com/s/ijt3ppej789liyp/centos-6.6-x86_64.box"
 
     soa2admin2.vm.provider :vmware_fusion do |v, override|
-      override.vm.box = "centos-6.6-x86_64-vmware"
-      override.vm.box_url = "https://dl.dropboxusercontent.com/s/7ytmqgghoo1ymlp/centos-6.6-x86_64-vmware.box"
+      override.vm.box = "OEL-6.6-x86_64-vmware"
+      override.vm.box_url = "https://dl.dropboxusercontent.com/s/96qaaklh1ya6qnd/OEL6_6-x86_64-vmware.box?dl=0"
     end
 
     soa2admin2.vm.hostname = "soa2admin2.example.com"
@@ -100,8 +100,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     soadb.vm.box_url = "https://dl.dropboxusercontent.com/s/ijt3ppej789liyp/centos-6.6-x86_64.box"
 
     soadb.vm.provider :vmware_fusion do |v, override|
-      override.vm.box = "centos-6.6-x86_64-vmware"
-      override.vm.box_url = "https://dl.dropboxusercontent.com/s/7ytmqgghoo1ymlp/centos-6.6-x86_64-vmware.box"
+      override.vm.box = "OEL-6.6-x86_64-vmware"
+      override.vm.box_url = "https://dl.dropboxusercontent.com/s/96qaaklh1ya6qnd/OEL6_6-x86_64-vmware.box?dl=0"
     end
 
     soadb.vm.hostname = "soadb.example.com"
