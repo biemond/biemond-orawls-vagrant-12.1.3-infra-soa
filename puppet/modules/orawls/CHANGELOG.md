@@ -3,6 +3,11 @@
 ## 1.0.33
 - added ESS (enterprise schedular) to OSB domain option
 - RCU prefix compare check fix ( Uppercase )
+- SOA FMW cluster fixes for latest 12.1.3 soa patch
+- SOA FMW cluster fix for soa with bam
+- Java tmp dir option for 12c FMW software install
+- wls_server, new attribute WeblogicPluginEnabled
+- Optional DefaultUserNameMapperAttributeType fix in wls_identity_asserter
 
 ## 1.0.32
 - new wls_singleton_service type
