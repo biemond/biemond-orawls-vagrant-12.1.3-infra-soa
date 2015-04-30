@@ -1,13 +1,20 @@
 # History
 
+## 1.0.34
+- Copydomain FMW apps_dir fix
+- FTP Resource adapter plus resource adapter fixes
+- New type wls_coherence_server
+- Moved 12c nodemanager properties from domain.pp to nodemanager.pp
+
 ## 1.0.33
-- added ESS (enterprise schedular) to OSB domain option
+- added ESS (enterprise schedular) to OSB domain + FMW cluster option
 - RCU prefix compare check fix ( Uppercase )
 - SOA FMW cluster fixes for latest 12.1.3 soa patch
 - SOA FMW cluster fix for soa with bam
 - Java tmp dir option for 12c FMW software install
 - wls_server, new attribute WeblogicPluginEnabled
 - Optional DefaultUserNameMapperAttributeType fix in wls_identity_asserter
+- Added bash shell to su -c commands like opatch, bsu, wls_adminserver, rcu types
 
 ## 1.0.32
 - new wls_singleton_service type

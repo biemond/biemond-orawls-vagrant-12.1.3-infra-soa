@@ -447,7 +447,7 @@ cluster_instances:
   'SoaCluster':
     ensure:         'present'
     messagingmode:  'unicast'
-    migrationbasis: 'consensus'
+    migrationbasis: 'database'
     servers:
       - 'SoaServer1'
       - 'SoaServer2'
@@ -457,7 +457,7 @@ cluster_instances:
   'BamCluster':
     ensure:         'present'
     messagingmode:  'unicast'
-    migrationbasis: 'consensus'
+    migrationbasis: 'database'
     servers:
       - 'BamServer1'
       - 'BamServer2'
@@ -467,7 +467,7 @@ cluster_instances:
   'OsbCluster':
     ensure:         'present'
     messagingmode:  'unicast'
-    migrationbasis: 'consensus'
+    migrationbasis: 'database'
     servers:
       - 'OsbServer1'
       - 'OsbServer2'
