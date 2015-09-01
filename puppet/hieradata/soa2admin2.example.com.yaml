@@ -42,12 +42,12 @@ fmw_installations:
     bpm:                     true
     log_output:              true
     remote_file:             false
-  'osb1213':
-    version:                 *wls_version
-    fmw_product:             "osb"
-    fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
-    log_output:              true
-    remote_file:             false
+  # 'osb1213':
+  #   version:                 *wls_version
+  #   fmw_product:             "osb"
+  #   fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
+  #   log_output:              true
+  #   remote_file:             false
 
 opatch_instances:
   '20423408':
@@ -73,10 +73,10 @@ domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properti
 domain_instances:
   'soa_domain':
     version:                  *wls_version
-    domain_template:          "osb_soa_bpm"
+    domain_template:          "soa_bpm"
     bam_enabled:              true
-    b2b_enabled:              true
-    ess_enabled:              true
+    # b2b_enabled:              true
+    # ess_enabled:              true
     development_mode:         true
     log_output:               *logoutput
     nodemanager_address:      "10.10.10.21"
@@ -142,14 +142,14 @@ fmw_cluster_instances:
     domain_name:          "soa_domain"
     soa_cluster_name:     "SoaCluster"
     bam_cluster_name:     "BamCluster"
-    osb_cluster_name:     "OsbCluster"
+    # osb_cluster_name:     "OsbCluster"
     log_output:           *logoutput
     bpm_enabled:          true
     bam_enabled:          true
     soa_enabled:          true
-    osb_enabled:          true
-    b2b_enabled:          true
-    ess_enabled:          true
+    # osb_enabled:          true
+    # b2b_enabled:          true
+    # ess_enabled:          true
     repository_prefix:    "DEV"
 
 # # fmw cluster
@@ -180,10 +180,10 @@ fmwlogdir_instances:
      log_output:      true
      server:          'BamServer1'
      require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'OsbServer1':
-     log_output:      true
-     server:          'OsbServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  # 'OsbServer1':
+  #    log_output:      true
+  #    server:          'OsbServer1'
+  #    require:         Orawls::Utils::Fmwcluster[soaCluster]
   'SoaServer2':
      log_output:      true
      server:          'SoaServer2'
@@ -192,10 +192,10 @@ fmwlogdir_instances:
      log_output:      true
      server:          'BamServer2'
      require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'OsbServer2':
-     log_output:      true
-     server:          'OsbServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
+  # 'OsbServer2':
+  #    log_output:      true
+  #    server:          'OsbServer2'
+  #    require:         Orawls::Utils::Fmwcluster[soaCluster]
 
 
 machines_instances:
@@ -376,70 +376,70 @@ server_instances:
      jsseenabled:                           '1'
      require:
        - Wls_machine[Node2]
-  'OsbServer1':
-     ensure:                                'present'
-     arguments:
-       - *server_vm_args_permsize
-       - *server_vm_args_max_permsize
-       - *server_vm_args_memory
-       - *server_vm_args_max_memory
-       - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer1.out'
-       - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer1_err.out'
-     listenaddress:                         '10.10.10.21'
-     listenport:                            '8011'
-     logfilename:                           '/var/log/weblogic/OsbServer1.log'
-     log_file_min_size:                     '5000'
-     log_filecount:                         '10'
-     log_number_of_files_limited:           '1'
-     log_rotate_logon_startup:              '1'
-     log_rotationtype:                      'bySize'
-     log_datasource_filename:               '/var/log/weblogic/OSB1_datasource.log'
-     log_http_filename:                     '/var/log/weblogic/OSB1_access.log'
-     log_http_format:                       'date time cs-method cs-uri sc-status'
-     log_http_format_type:                  'common'
-     log_http_file_count:                   '10'
-     log_http_number_of_files_limited:      '1'
-     log_redirect_stderr_to_server:         '0'
-     log_redirect_stdout_to_server:         '0'
-     machine:                               'Node1'
-     sslenabled:                            '0'
-     ssllistenport:                         '8012'
-     sslhostnameverificationignored:        '1'
-     jsseenabled:                           '1'
-     require:
-       - Wls_machine[Node1]
-  'OsbServer2':
-     ensure:                                'present'
-     arguments:
-       - *server_vm_args_permsize
-       - *server_vm_args_max_permsize
-       - *server_vm_args_memory
-       - *server_vm_args_max_memory
-       - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer2.out'
-       - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer2_err.out'
-     listenaddress:                         '10.10.10.22'
-     listenport:                            '8011'
-     logfilename:                           '/var/log/weblogic/OsbServer2.log'
-     log_file_min_size:                     '5000'
-     log_filecount:                         '10'
-     log_number_of_files_limited:           '1'
-     log_rotate_logon_startup:              '1'
-     log_rotationtype:                      'bySize'
-     log_datasource_filename:               '/var/log/weblogic/OSB2_datasource.log'
-     log_http_filename:                     '/var/log/weblogic/OSB2_access.log'
-     log_http_format:                       'date time cs-method cs-uri sc-status'
-     log_http_format_type:                  'common'
-     log_http_file_count:                   '10'
-     log_http_number_of_files_limited:      '1'
-     log_redirect_stderr_to_server:         '0'
-     log_redirect_stdout_to_server:         '0'
-     machine:                               'Node2'
-     sslenabled:                            '0'
-     ssllistenport:                         '8012'
-     sslhostnameverificationignored:        '1'
-     jsseenabled:                           '1'
-     require:
-       - Wls_machine[Node2]
+  # 'OsbServer1':
+  #    ensure:                                'present'
+  #    arguments:
+  #      - *server_vm_args_permsize
+  #      - *server_vm_args_max_permsize
+  #      - *server_vm_args_memory
+  #      - *server_vm_args_max_memory
+  #      - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer1.out'
+  #      - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer1_err.out'
+  #    listenaddress:                         '10.10.10.21'
+  #    listenport:                            '8011'
+  #    logfilename:                           '/var/log/weblogic/OsbServer1.log'
+  #    log_file_min_size:                     '5000'
+  #    log_filecount:                         '10'
+  #    log_number_of_files_limited:           '1'
+  #    log_rotate_logon_startup:              '1'
+  #    log_rotationtype:                      'bySize'
+  #    log_datasource_filename:               '/var/log/weblogic/OSB1_datasource.log'
+  #    log_http_filename:                     '/var/log/weblogic/OSB1_access.log'
+  #    log_http_format:                       'date time cs-method cs-uri sc-status'
+  #    log_http_format_type:                  'common'
+  #    log_http_file_count:                   '10'
+  #    log_http_number_of_files_limited:      '1'
+  #    log_redirect_stderr_to_server:         '0'
+  #    log_redirect_stdout_to_server:         '0'
+  #    machine:                               'Node1'
+  #    sslenabled:                            '0'
+  #    ssllistenport:                         '8012'
+  #    sslhostnameverificationignored:        '1'
+  #    jsseenabled:                           '1'
+  #    require:
+  #      - Wls_machine[Node1]
+  # 'OsbServer2':
+  #    ensure:                                'present'
+  #    arguments:
+  #      - *server_vm_args_permsize
+  #      - *server_vm_args_max_permsize
+  #      - *server_vm_args_memory
+  #      - *server_vm_args_max_memory
+  #      - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer2.out'
+  #      - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer2_err.out'
+  #    listenaddress:                         '10.10.10.22'
+  #    listenport:                            '8011'
+  #    logfilename:                           '/var/log/weblogic/OsbServer2.log'
+  #    log_file_min_size:                     '5000'
+  #    log_filecount:                         '10'
+  #    log_number_of_files_limited:           '1'
+  #    log_rotate_logon_startup:              '1'
+  #    log_rotationtype:                      'bySize'
+  #    log_datasource_filename:               '/var/log/weblogic/OSB2_datasource.log'
+  #    log_http_filename:                     '/var/log/weblogic/OSB2_access.log'
+  #    log_http_format:                       'date time cs-method cs-uri sc-status'
+  #    log_http_format_type:                  'common'
+  #    log_http_file_count:                   '10'
+  #    log_http_number_of_files_limited:      '1'
+  #    log_redirect_stderr_to_server:         '0'
+  #    log_redirect_stdout_to_server:         '0'
+  #    machine:                               'Node2'
+  #    sslenabled:                            '0'
+  #    ssllistenport:                         '8012'
+  #    sslhostnameverificationignored:        '1'
+  #    jsseenabled:                           '1'
+  #    require:
+  #      - Wls_machine[Node2]
 
 
 # create cluster and assign the managed servers
@@ -464,13 +464,13 @@ cluster_instances:
     require:
       - Wls_server[BamServer1]
       - Wls_server[BamServer2]
-  'OsbCluster':
-    ensure:         'present'
-    messagingmode:  'unicast'
-    migrationbasis: 'database'
-    servers:
-      - 'OsbServer1'
-      - 'OsbServer2'
-    require:
-      - Wls_server[OsbServer1]
-      - Wls_server[OsbServer2]
+  # 'OsbCluster':
+  #   ensure:         'present'
+  #   messagingmode:  'unicast'
+  #   migrationbasis: 'database'
+  #   servers:
+  #     - 'OsbServer1'
+  #     - 'OsbServer2'
+  #   require:
+  #     - Wls_server[OsbServer1]
+  #     - Wls_server[OsbServer2]

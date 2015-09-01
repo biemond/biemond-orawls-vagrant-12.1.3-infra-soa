@@ -3,7 +3,7 @@ require 'yaml'
 # require 'ruby-debug'
 
 module Puppet
-  newtype(:wls_setting) do
+  Type.newtype(:wls_setting) do
     include EasyType
 
     DEFAULT_FILE = '/etc/wls_setting.yaml'
@@ -21,6 +21,10 @@ module Puppet
     property :connect_url
     property :weblogic_password
     property :post_classpath
+
+    property :custom_trust
+    property :trust_keystore_file
+    property :trust_keystore_passphrase
 
     def self.configuration
       @configuration

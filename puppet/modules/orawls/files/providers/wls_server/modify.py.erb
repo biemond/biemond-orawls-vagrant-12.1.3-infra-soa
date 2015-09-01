@@ -23,11 +23,11 @@ log_number_of_files_limited   = '<%= log_number_of_files_limited %>'
 log_redirect_stderr_to_server = '<%= log_redirect_stderr_to_server %>'
 log_redirect_stdout_to_server = '<%= log_redirect_stdout_to_server %>'
 
-
-restart_max   = '<%= restart_max %>'
-listenAddress = '<%= listenaddress %>'
-listenPort    = '<%= listenport %>'
-sslEnabled    = '<%= sslenabled %>'
+restart_max       = '<%= restart_max %>'
+listenAddress     = '<%= listenaddress %>'
+listenPort        = '<%= listenport %>'
+listenPortEnabled = '<%= listenportenabled %>'
+sslEnabled        = '<%= sslenabled %>'
 sslHostnameVerificationIgnored = '<%= sslhostnameverificationignored %>'
 two_way_ssl = '<%= two_way_ssl %>'
 client_certificate_enforced = '<%= client_certificate_enforced %>'
@@ -48,6 +48,14 @@ trust_keystore_passphrase              = '<%= trust_keystore_passphrase %>'
 default_file_store                     = '<%= default_file_store %>'
 max_message_size                       = '<%= max_message_size %>'
 weblogic_plugin_enabled                = '<%= weblogic_plugin_enabled %>'
+auto_restart                           = '<%= auto_restart %>'
+autokillwfail                          = '<%= autokillwfail %>'
+
+server_parameters		       = '<%= server_parameters %>'
+
+frontend_host                  = '<%= frontendhost %>'
+frontend_http_port             = '<%= frontendhttpport %>'
+frontend_https_port            = '<%= frontendhttpsport %>'
 
 edit()
 startEdit()
@@ -70,6 +78,11 @@ try:
     cd('/Servers/'+name)
     set('Machine',getMBean('/Machines/'+machineName))
 
+    print "Change Notes"
+    if server_parameters and server_parameters != 'None':
+      cmo.setNotes(server_parameters)
+
+    print "Change listenAddress"
     if listenAddress and not listenAddress.isspace():
       set('ListenAddress',listenAddress)
     else:
@@ -77,6 +90,9 @@ try:
 
     if listenPort:
       set('ListenPort', int(listenPort))
+
+    if listenPortEnabled and listenPortEnabled != '-1':
+      set('ListenPortEnabled', formatBoolean(listenPortEnabled))
 
     if logintimeout:
       set('LoginTimeoutMillis', int(logintimeout))
@@ -120,6 +136,35 @@ try:
     if custom_identity == '0':
       set('KeyStores'                                ,'DemoIdentityAndDemoTrust')
 
+
+    cd('/Servers/'+name)
+    if auto_restart == '0':
+      print "Change AutoRestart"
+      set('AutoRestart','False')
+    else:
+      print "Change AutoRestart"
+      set('AutoRestart','True')
+
+    if autokillwfail == '1':
+      print "Change AutoKillIfFailed"
+      set('AutoKillIfFailed','True')
+    else:
+      print "Change AutoKillIfFailed"
+      set('AutoKillIfFailed','False')
+
+    cd('/Servers/'+name+'/WebServer/'+name)
+
+    if frontend_host:
+      print "Setting Frontend Host"
+      cmo.setFrontendHost(frontend_host)
+
+    print "Setting Frontend HTTP Port"
+    cmo.setFrontendHTTPPort(int(frontend_http_port))
+
+    print "Setting Frontend HTTPS Port"
+    cmo.setFrontendHTTPSPort(int(frontend_https_port))
+
+    print "Change SSL"
     cd('/Servers/'+name+'/SSL/'+name)
 
     if sslEnabled and sslEnabled != '-1':

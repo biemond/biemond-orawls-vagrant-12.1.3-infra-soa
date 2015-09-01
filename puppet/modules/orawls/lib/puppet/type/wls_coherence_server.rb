@@ -5,7 +5,7 @@ require 'utils/title_parser'
 require 'facter'
 
 module Puppet
-  newtype(:wls_coherence_server) do
+  Type.newtype(:wls_coherence_server) do
     include EasyType
     include Utils::WlsAccess
     extend Utils::TitleParser
@@ -47,6 +47,7 @@ module Puppet
     #property :restartmax
     property :unicastaddress
     property :unicastport
+    property :classpath
 
     add_title_attributes(:coherence_server_name) do
       /^((.*\/)?(.*)?)$/

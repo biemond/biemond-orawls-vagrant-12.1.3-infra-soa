@@ -6,7 +6,7 @@ require 'utils/title_parser'
 require 'facter'
 
 module Puppet
-  newtype(:wls_server) do
+  Type.newtype(:wls_server) do
     include EasyType
     include Utils::WlsAccess
     extend Utils::TitleParser
@@ -57,11 +57,16 @@ module Puppet
     property :sslenabled
     property :listenaddress
     property :listenport
+    property :listenportenabled
     property :machine
     property :classpath
     property :arguments
     property :bea_home
     property :logintimeout
+
+    property :frontendhost
+    property :frontendhttpport
+    property :frontendhttpsport
 
     property :logfilename
     property :log_file_min_size
@@ -89,6 +94,11 @@ module Puppet
     property :weblogic_plugin_enabled
 
     property :custom_identity
+
+    property :auto_restart
+    property :autokillwfail
+
+    property :server_parameters
 
     add_title_attributes(:server_name) do
       /^((.*\/)?(.*)?)$/

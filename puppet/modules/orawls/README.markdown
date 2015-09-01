@@ -27,7 +27,7 @@ Dependency with
 
 ## Complete examples
 - Docker with WebLogic 12.1.3 Cluster [docker-weblogic-puppet](https://github.com/biemond/docker-weblogic-puppet)
-- WebLogic 12.1.3 Reference implementation, the vagrant test case for full working WebLogic 12.1.3 cluster example [biemond-orawls-vagrant-12.1.3](https://github.com/biemond/biemond-orawls-vagrant-12.1.3)
+- WebLogic 12.1.3 / Puppet 4.2.1 Reference implementation, the vagrant test case for full working WebLogic 12.1.3 cluster example [biemond-orawls-vagrant-12.1.3](https://github.com/biemond/biemond-orawls-vagrant-12.1.3)
 - WebLogic 12.1.3 infra (JRF), the vagrant test case for full working WebLogic 12.1.3 infra cluster example with WebTier (Oracle HTTP Server) [biemond-orawls-vagrant-12.1.3-infra](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra)
 - WebLogic 12.1.3 infra with OSB, the vagrant test case for full working WebLogic 12.1.3 infra OSB cluster example [biemond-orawls-vagrant-12.1.3-infra-osb](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-osb)
 - WebLogic 12.1.3 infra with OSB & SOA,ESS,BAM, the vagrant test case for full working WebLogic 12.1.3 infra OSB SOA Cluster example [biemond-orawls-vagrant-12.1.3-infra-soa](https://github.com/biemond/biemond-orawls-vagrant-12.1.3-infra-soa)
@@ -38,6 +38,8 @@ Dependency with
 - WebLogic 11g Reference implementation, the vagrant test case for full working WebLogic 10.3.6 cluster example [biemond-orawls-vagrant](https://github.com/biemond/biemond-orawls-vagrant)
 - Reference Oracle SOA Suite, the vagrant test case for full working WebLogic 10.3.6 SOA Suite + OSB cluster example [biemond-orawls-vagrant-solaris-soa](https://github.com/biemond/biemond-orawls-vagrant-solaris-soa)
 - Example of Opensource Puppet 3.4.3 Puppet master configuration in a vagrant box [vagrant-puppetmaster](https://github.com/biemond/vagrant-puppetmaster)
+- Oracle Forms, Reports 11.1.1.7 & 11.1.2 Reference implementation, the vagrant test case [biemond-orawls-vagrant-11g-forms](https://github.com/biemond/biemond-orawls-vagrant-11g-forms)
+
 
 ## Orawls WebLogic Features
 
@@ -53,6 +55,7 @@ Dependency with
 - [Startup a nodemanager](#nodemanager)
 - [start or stop AdminServer, Managed or a Cluster](#control)
 - [StoreUserConfig](#storeuserconfig) for storing WebLogic Credentials and using in WLST
+- [Dynamic targetting](#Dynamictargetting) by using the notes field in WebLogic for resource targetting
 
 ### Fusion Middleware Features 11g & 12.1.3
 - installs [FMW](#fmw) software(add-on) to a middleware home, like OSB,SOA Suite, Oracle Identity & Access Management, Oracle Unified Directory, WebCenter Portal + Content
@@ -61,6 +64,7 @@ Dependency with
 - [ADF/JRF support](#fmwclusterjrf), Assign JRF libraries to a Server or Cluster target
 - [OIM IDM](#oimconfig) / OAM configurations with Oracle OHS OAM WebGate, Also Cluster support for OIM OAM
 - [OUD](#instance) OUD Oracle Unified Directory install, WebLogic domain, instances creation & [OUD control](#oud_control)
+- [Forms/Reports](#forms) Oracle Forms & Reports 11.1.1.7 or 11.1.2
 - [Change FMW log](#fmwlogdir) location of a managed server
 - [Resource Adapter](#resourceadapter) plan and entries for AQ, DB and JMS
 
@@ -88,6 +92,7 @@ Dependency with
 - [wls_workmanager](#wls_workmanager)
 - [wls_datasource](#wls_datasource)
 - [wls_file_persistence_store](#wls_file_persistence_store)
+- [wls_jdbc_persistence_store](#wls_jdbc_persistence_store)
 - [wls_jmsserver](#wls_jmsserver)
 - [wls_safagent](#wls_safagent)
 - [wls_jms_module](#wls_jms_module)
@@ -96,6 +101,7 @@ Dependency with
 - [wls_jms_queue](#wls_jms_queue)
 - [wls_jms_topic](#wls_jms_topic)
 - [wls_jms_connection_factory](#wls_jms_connection_factory)
+- [wls_jms_template](#wls_jms_template)
 - [wls_saf_remote_context](#wls_saf_remote_context)
 - [wls_saf_error_handler](#wls_saf_error_handler)
 - [wls_saf_imported_destination](#wls_saf_imported_destination)
@@ -210,6 +216,17 @@ just generates all the certificates and set the following hiera variables.
     wls_trust_keystore_file:           &wls_trust_keystore_file       '/vagrant/truststore.jks'
     wls_trust_keystore_passphrase:     &wls_trust_keystore_passphrase 'welcome'
 
+    wls_setting_instances:
+      'default':
+        user:                      oracle
+        weblogic_home_dir:         '/opt/oracle/middleware11g/wlserver_10.3'
+        connect_url:               't3s://10.10.10.10:7002'
+        weblogic_user:             'weblogic'
+        weblogic_password:         'Welcome01'
+        custom_trust:              *wls_custom_trust
+        trust_keystore_file:       *wls_trust_keystore_file
+        trust_keystore_passphrase: *wls_trust_keystore_passphrase
+
     # create a standard domain with custom identity for the adminserver
     domain_instances:
       'Wls1036':
@@ -232,25 +249,25 @@ just generates all the certificates and set the following hiera variables.
         custom_identity_privatekey_passphrase: 'welcome'
         nodemanager_address:                   *domain_adminserver_address
 
-        server_instances:
-          'wlsServer1':
-            ensure:                                'present'
-            arguments:                             '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer1.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer1_err.out'
-            listenaddress:                         '10.10.10.100'
-            listenport:                            '8001'
-            logfilename:                           '/var/log/weblogic/wlsServer1.log'
-            machine:                               'Node1'
-            sslenabled:                            '1'
-            ssllistenport:                         '8201'
-            sslhostnameverificationignored:        '1'
-            jsseenabled:                           '1'
-            custom_identity:                       '1'
-            custom_identity_keystore_filename:     '/vagrant/identity_node1.jks'
-            custom_identity_keystore_passphrase:   'welcome'
-            custom_identity_alias:                 'node1'
-            custom_identity_privatekey_passphrase: 'welcome'
-            trust_keystore_file:                   *wls_trust_keystore_file
-            trust_keystore_passphrase:             *wls_trust_keystore_passphrase
+    server_instances:
+      'wlsServer1':
+        ensure:                                'present'
+        arguments:                             '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer1.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer1_err.out'
+        listenaddress:                         '10.10.10.100'
+        listenport:                            '8001'
+        logfilename:                           '/var/log/weblogic/wlsServer1.log'
+        machine:                               'Node1'
+        sslenabled:                            '1'
+        ssllistenport:                         '8201'
+        sslhostnameverificationignored:        '1'
+        jsseenabled:                           '1'
+        custom_identity:                       '1'
+        custom_identity_keystore_filename:     '/vagrant/identity_node1.jks'
+        custom_identity_keystore_passphrase:   'welcome'
+        custom_identity_alias:                 'node1'
+        custom_identity_privatekey_passphrase: 'welcome'
+        trust_keystore_file:                   *wls_trust_keystore_file
+        trust_keystore_passphrase:             *wls_trust_keystore_passphrase
 
 
 ## <a name="urandom">Linux low on entropy or urandom fix</a>
@@ -403,6 +420,7 @@ __orawls::weblogic__ installs WebLogic 10.3.[0-6], 12.1.1, 12.1.2 & 12.1.3
       jdk_home_dir         => '/usr/java/jdk1.7.0_45',
       oracle_base_home_dir => "/opt/oracle",
       middleware_home_dir  => "/opt/oracle/middleware12c",
+      weblogic_home_dir    => "/opt/oracle/middleware12c/wlserver",
       os_user              => "oracle",
       os_group             => "dba",
       download_dir         => "/data/install",
@@ -419,6 +437,7 @@ __orawls::weblogic__ installs WebLogic 10.3.[0-6], 12.1.1, 12.1.2 & 12.1.3
       jdk_home_dir         => '/usr/java/jdk1.7.0_55',
       oracle_base_home_dir => "/opt/oracle",
       middleware_home_dir  => "/opt/oracle/middleware12c",
+      weblogic_home_dir    => "/opt/oracle/middleware12c/wlserver",
       os_user              => "oracle",
       os_group             => "dba",
       download_dir         => "/data/install",
@@ -434,6 +453,7 @@ or with a bin file located on a share
         filename             => "oepe-wls-indigo-installer-11.1.1.8.0.201110211138-10.3.6-linux32.bin",
         oracle_base_home_dir => "/opt/weblogic",
         middleware_home_dir  => "/opt/weblogic/Middleware",
+        weblogic_home_dir    => "/opt/weblogic/Middleware/wlserver_10.3",
         fmw_infra            => false,
         jdk_home_dir         => "/usr/java/latest",
         os_user              => "weblogic",
@@ -1010,6 +1030,10 @@ When using ssh (use_ssh = true) you need to setup ssh so you won't need to provi
       adminserver_port       => 7001,
       weblogic_user          => "weblogic",
       weblogic_password      => "weblogic1",
+      setinternalappdeploymentondemandenable => false,
+      setconfigbackupenabled                 => true,
+      setarchiveconfigurationcount           => 10,
+      setconfigurationaudittype              => 'logaudit',
     }
 
 Configuration with Hiera ( need to have puppet > 3.0 )
@@ -1302,6 +1326,77 @@ when you just have one WebLogic domain on a server
          log_output:           true
          user_config_dir:      '/home/oracle'
 
+### Dynamictargetting
+Sometimes you do not know how many managed services you will have,
+due to application scaling or other use cases. Since you do specify resources
+like clusters and datasources in a more 'static' way, there should be a way to
+qualify a managed server as a target for such resources.
+
+We use the notes field in WebLogic Server to accomplish this. Currently implemented
+for the following resource types:
+
+- wls_cluster
+- wls_datasource
+- wls_mail_session
+
+The way you use this, is by entering the resource name in the server_parameter
+field on the wls_server type, and put the servers field to 'inherited' on the
+resource to be targeted.
+
+Example:
+
+    wls_server { 'wlsServer1':
+      ensure                            => 'present',
+      arguments                         => '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer1.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer1_err.out',
+      jsseenabled                       => '0',
+      listenaddress                     => '10.10.10.100',
+      listenport                        => '8001',
+      listenportenabled                 => '1',
+      machine                           => 'Node1',
+      sslenabled                        => '0',
+      tunnelingenabled                  => '0',
+      max_message_size                  => '10000000',
+      server_parameter                  => 'WebCluster, hrDs',
+    }
+
+    wls_cluster { 'WebCluster':
+      ensure           => 'present',
+      messagingmode    => 'unicast',
+      migrationbasis   => 'consensus',
+      servers          => ['inherited'],
+      multicastaddress => '239.192.0.0',
+      multicastport    => '7001',
+    }
+
+    wls_datasource { 'hrDS':
+      ensure                           => 'present',
+      connectioncreationretryfrequency => '0',
+      drivername                       => 'oracle.jdbc.xa.client.OracleXADataSource',
+      extraproperties                  => ['SendStreamAsBlob=true', 'oracle.net.CONNECT_TIMEOUT=10001'],
+      fanenabled                       => '0',
+      globaltransactionsprotocol       => 'TwoPhaseCommit',
+      initialcapacity                  => '2',
+      initsql                          => 'None',
+      jndinames                        => ['jdbc/hrDS', 'jdbc/hrDS2'],
+      maxcapacity                      => '15',
+      mincapacity                      => '1',
+      rowprefetchenabled               => '0',
+      rowprefetchsize                  => '48',
+      secondstotrustidlepoolconnection => '10',
+      statementcachesize               => '10',
+      target                           => ['inherited'],
+      targettype                       => ['inherited'],
+      testconnectionsonreserve         => '0',
+      testfrequency                    => '120',
+      testtablename                    => 'SQL SELECT 1 FROM DUAL',
+      url                              => 'jdbc:oracle:thin:@dbagent2.alfa.local:1521/test.oracle.com',
+      user                             => 'hr',
+      usexa                            => '0',
+    }
+
+In the case of the wls_datasource type, the jdbc connection will be targetted on
+the cluster if the managed server is in a cluster.
+
 ### fmwlogdir
 __orawls::fmwlogdir__ Change a log folder location of a FMW server
 when you set the defaults hiera variables
@@ -1506,6 +1601,19 @@ hiera configuration
           instance_name:         'ohs1'
           machine_name:          'Node1'
 
+Webtier for OAM
+
+    webtier_instances:
+      'ohs1':
+        action_name:            'create'
+        instance_name:          'ohs1'
+        webgate_configure:      true
+        webgate_agentname:      'ohs1'
+        webgate_hostidentifier: 'host1'
+        oamadminserverhostname: 'oim1admin.example.com'
+        oamadminserverport:     '7001'
+        log_output:             *logoutput
+
 ### oimconfig
 __orawls::utils::oimconfig__ Configure OIM , oim server, design or remote configuration
 
@@ -1581,10 +1689,6 @@ Global timeout parameter for WebLogic resource types. use timeout and value in s
 
 required for all the weblogic type/providers, this is a pointer to an WebLogic AdminServer.
 
-For suppressing the passwords in the puppet log output you can set the loglevel to debug, this way it will only show up when you set puppet agent or apply loglevel to debug and off course when the wls_setting is created or updated. in other cases you won't see a thing in the output.
-
-in hiera loglevel: 'debug' or loglevel => 'debug'
-
     wls_setting { 'default':
       user               => 'oracle',
       weblogic_home_dir  => '/opt/oracle/middleware11g/wlserver_10.3',
@@ -1613,6 +1717,25 @@ or in hiera
         weblogic_user:      'weblogic'
         weblogic_password:  'weblogic1'
         post_classpath:     '/opt/oracle/middleware12c/oracle_common/modules/internal/features/jrf_wlsFmw_oracle.jrf.wlst_12.1.3.jar'
+
+With t3s and custom trust
+
+    wls_setting_instances:
+      'default':
+        user:                      oracle'
+        weblogic_home_dir:         '/opt/oracle/middleware12c/wlserver'
+        connect_url:               "t3s://10.10.10.21:7002"
+        weblogic_user:             'weblogic'
+        weblogic_password:         'weblogic1'
+        custom_trust:              true
+        trust_keystore_file:       '/vagrant/truststore.jks'
+        trust_keystore_passphrase: 'welcome'
+      'plain':
+        user:                      oracle'
+        weblogic_home_dir:         '/opt/oracle/middleware12c/wlserver'
+        connect_url:               "t3://10.10.10.21:7101"
+        weblogic_user:             'weblogic'
+        weblogic_password:         'weblogic1'
 
 
 ### wls_domain
@@ -2132,6 +2255,7 @@ or use puppet resource wls_server
       jsseenabled                       => '0',
       listenaddress                     => '10.10.10.100',
       listenport                        => '8001',
+      listenportenabled                 => '1',
       machine                           => 'Node1',
       sslenabled                        => '0',
       tunnelingenabled                  => '0',
@@ -2147,6 +2271,7 @@ or with log parameters, default file store and ssl
       jsseenabled                       => '0',
       listenaddress                     => '10.10.10.200',
       listenport                        => '8001',
+      listenportenabled                 => '1',
       log_file_min_size                 => '2000',
       log_filecount                     => '10',
       log_number_of_files_limited       => '1',
@@ -2174,7 +2299,23 @@ or with log parameters, default file store and ssl
       weblogic_plugin_enabled           => '1',
     }
 
+If you want automatic restart when the server crashes, or automatically kill when the server hangs
 
+    # this will use default as wls_setting identifier
+    wls_server { 'wlsServer1':
+      ensure                            => 'present',
+      arguments                         => '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer1.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer1_err.out',
+      jsseenabled                       => '0',
+      listenaddress                     => '10.10.10.100',
+      listenport                        => '8001',
+      listenportenabled                 => '1',
+      machine                           => 'Node1',
+      sslenabled                        => '0',
+      tunnelingenabled                  => '0',
+      max_message_size                  => '10000000',
+      auto_restart                      => '1',
+      autokillwfail                     => '1',
+    }
 
 or with JSSE with custom identity and trust
 
@@ -2184,6 +2325,7 @@ or with JSSE with custom identity and trust
       arguments                             => '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/var/log/weblogic/wlsServer2.out -Dweblogic.Stderr=/var/log/weblogic/wlsServer2_err.out',
       listenaddress                         => '10.10.10.200',
       listenport                            => '8001',
+      listenportenabled                     => '1',
       log_file_min_size                     => '2000',
       log_filecount                         => '10',
       log_number_of_files_limited           => '1',
@@ -2217,6 +2359,7 @@ in hiera
          arguments:                      '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/data/logs/wlsServer1.out -Dweblogic.Stderr=/data/logs/wlsServer1_err.out'
          listenaddress:                  '10.10.10.100'
          listenport:                     '8001'
+         listenportenabled:              '1'
          logfilename:                    '/data/logs/wlsServer1.log'
          machine:                        'Node1'
          sslenabled:                     '1'
@@ -2235,6 +2378,7 @@ or with log parameters
         arguments:                      '-XX:PermSize=256m -XX:MaxPermSize=256m -Xms752m -Xmx752m -Dweblogic.Stdout=/data/logs/wlsServer1.out -Dweblogic.Stderr=/data/logs/wlsServer1_err.out'
         listenaddress:                         '10.10.10.100'
         listenport:                            '8001'
+        listenportenabled:                     '1'
         logfilename:                           '/var/log/weblogic/wlsServer1.log'
         log_file_min_size:                     '2000'
         log_filecount:                         '10'
@@ -2340,28 +2484,69 @@ it needs wls_setting and when identifier is not provided it will use the 'defaul
 or use puppet resource wls_server_channel
 
     # this will use default as wls_setting identifier
-    wls_server_channel { 'wlsServer1:Channel-Cluster':
-      ensure           => 'present',
-      enabled          => '1',
-      httpenabled      => '1',
-      listenaddress    => '10.10.10.100',
-      listenport       => '8003',
-      outboundenabled  => '0',
-      protocol         => 'cluster-broadcast',
-      publicaddress    => '10.10.10.100',
-      tunnelingenabled => '0',
+    wls_server_channel { 'default/wlsServer1:Channel-Cluster':
+      ensure                      => 'present',
+      channel_identity_customized => '0',
+      client_certificate_enforced => '0',
+      custom_identity_alias       => 'node1',
+      enabled                     => '1',
+      httpenabled                 => '1',
+      listenaddress               => '10.10.10.100',
+      listenport                  => '8003',
+      max_message_size            => '25000000',
+      outboundenabled             => '0',
+      protocol                    => 'cluster-broadcast',
+      publicaddress               => '10.10.10.100',
+      publicport                  => '8003',
+      tunnelingenabled            => '0',
+      two_way_ssl                 => '0',
     }
-    # this will use default as wls_setting identifier
-    wls_server_channel { 'wlsServer2:Channel-Cluster':
-      ensure           => 'present',
-      enabled          => '1',
-      httpenabled      => '1',
-      listenport       => '8003',
-      publicport       => '8103',
-      outboundenabled  => '0',
-      protocol         => 'cluster-broadcast',
-      tunnelingenabled => '0',
-      max_message_size => '25000000',
+    wls_server_channel { 'default/wlsServer1:HTTP':
+      ensure                      => 'present',
+      channel_identity_customized => '0',
+      client_certificate_enforced => '0',
+      custom_identity_alias       => 'node1',
+      enabled                     => '1',
+      httpenabled                 => '1',
+      listenport                  => '8004',
+      max_message_size            => '35000000',
+      outboundenabled             => '0',
+      protocol                    => 'http',
+      publicport                  => '8104',
+      tunnelingenabled            => '0',
+      two_way_ssl                 => '0',
+    }
+    wls_server_channel { 'default/wlsServer2:Channel-Cluster':
+      ensure                      => 'present',
+      channel_identity_customized => '0',
+      client_certificate_enforced => '0',
+      custom_identity_alias       => 'node2',
+      enabled                     => '1',
+      httpenabled                 => '1',
+      listenaddress               => '10.10.10.200',
+      listenport                  => '8003',
+      max_message_size            => '25000000',
+      outboundenabled             => '0',
+      protocol                    => 'cluster-broadcast',
+      publicaddress               => '10.10.10.200',
+      publicport                  => '8003',
+      tunnelingenabled            => '0',
+      two_way_ssl                 => '0',
+    }
+    wls_server_channel { 'default/wlsServer2:HTTP':
+      ensure                      => 'present',
+      channel_identity_customized => '0',
+      client_certificate_enforced => '0',
+      custom_identity_alias       => 'node2',
+      enabled                     => '1',
+      httpenabled                 => '1',
+      listenport                  => '8004',
+      max_message_size            => '35000000',
+      outboundenabled             => '0',
+      protocol                    => 'http',
+      publicport                  => '8104',
+      tunnelingenabled            => '0',
+      two_way_ssl                 => '0',
     }
 
 in hiera
@@ -2372,23 +2557,50 @@ in hiera
         ensure:           'present'
         enabled:          '1'
         httpenabled:      '1'
-        listenaddress:    '10.10.10.100'
+        listenaddress:    *domain_node1_address
         listenport:       '8003'
         outboundenabled:  '0'
         protocol:         'cluster-broadcast'
-        publicaddress:    '10.10.10.100'
+        publicaddress:    *domain_node1_address
         tunnelingenabled: '0'
+        # require:
+        #   - Wls_server[wlsServer1]
       'wlsServer2:Channel-Cluster':
         ensure:           'present'
         enabled:          '1'
         httpenabled:      '1'
+        listenaddress:    *domain_node2_address
         listenport:       '8003'
-        publicport:       '8103'
         outboundenabled:  '0'
         protocol:         'cluster-broadcast'
+        publicaddress:    *domain_node2_address
         tunnelingenabled: '0'
-        max_message_size: '25000000'
-
+        # require:
+        #   - Wls_server[wlsServer2]
+      'wlsServer1:HTTP':
+        ensure:           'present'
+        enabled:          '1'
+        httpenabled:      '1'
+        listenport:       '8004'
+        publicport:       '8104'
+        outboundenabled:  '0'
+        protocol:         'http'
+        tunnelingenabled: '0'
+        max_message_size: '35000000'
+        # require:
+        #   - Wls_server[wlsServer1]
+      'wlsServer2:HTTP':
+        ensure:           'present'
+        enabled:          '1'
+        httpenabled:      '1'
+        listenport:       '8004'
+        publicport:       '8104'
+        outboundenabled:  '0'
+        protocol:         'http'
+        tunnelingenabled: '0'
+        max_message_size: '35000000'
+        # require:
+        #   - Wls_server[wlsServer2]
 
 ### wls_cluster
 
@@ -2626,26 +2838,31 @@ it needs wls_setting and when identifier is not provided it will use the 'defaul
 or use puppet resource wls_workmanager_constaint
 
     # this will use default as wls_setting identifier
-    wls_workmanager_constraint { 'default/CapacityConstraint':
+    wls_workmanager_constraint { 'CapacityConstraint':
       ensure          => 'present',
       constrainttype  => 'Capacity',
       constraintvalue => '20',
       target          => ['WebCluster'],
       targettype      => ['Cluster'],
     }
-    # this will use default as wls_setting identifier
-    wls_workmanager_constraint { 'default/MaxThreadsConstraint':
+    wls_workmanager_constraint { 'MaxThreadsConstraint':
       ensure          => 'present',
       constrainttype  => 'MaxThreadsConstraint',
       constraintvalue => '5',
       target          => ['WebCluster'],
       targettype      => ['Cluster'],
     }
-    # this will use default as wls_setting identifier
-    wls_workmanager_constraint { 'default/MinThreadsConstraint':
+    wls_workmanager_constraint { 'MinThreadsConstraint':
       ensure          => 'present',
       constrainttype  => 'MinThreadsConstraint',
       constraintvalue => '2',
+      target          => ['WebCluster'],
+      targettype      => ['Cluster'],
+    }
+    wls_workmanager_constraint { 'FairShareReqClass':
+      ensure          => 'present',
+      constrainttype  => 'FairShareRequestClasses',
+      constraintvalue => '50',
       target          => ['WebCluster'],
       targettype      => ['Cluster'],
     }
@@ -2678,6 +2895,15 @@ in hiera
         targettype:
           - 'Cluster'
         constrainttype:  'MinThreadsConstraint'
+      'FairShareReqClass':
+        ensure:          'present'
+        constrainttype:  'FairShareRequestClasses'
+        constraintvalue: '50'
+        target:
+          - 'WebCluster'
+        targettype:
+          - 'Cluster'
+
 
 ### wls_workmanager
 
@@ -2687,13 +2913,14 @@ or use puppet resource wls_workmanager
 
     # this will use default as wls_setting identifier
     wls_workmanager { 'WorkManagerConstraints':
-      ensure               => 'present',
-      capacity             => 'CapacityConstraint',
-      maxthreadsconstraint => 'MaxThreadsConstraint',
-      minthreadsconstraint => 'MinThreadsConstraint',
-      stuckthreads         => '0',
-      target               => ['WebCluster'],
-      targettype           => ['Cluster'],
+      ensure                => 'present',
+      capacity              => 'CapacityConstraint',
+      maxthreadsconstraint  => 'MaxThreadsConstraint',
+      minthreadsconstraint  => 'MinThreadsConstraint',
+      fairsharerequestclass => 'FairShareReqClass',
+      stuckthreads          => '0',
+      target                => ['WebCluster'],
+      targettype            => ['Cluster'],
     }
 
 in hiera
@@ -2705,6 +2932,7 @@ in hiera
         capacity:              'CapacityConstraint'
         maxthreadsconstraint:  'MaxThreadsConstraint'
         minthreadsconstraint:  'MinThreadsConstraint'
+        fairsharerequestclass: 'FairShareReqClass'
         stuckthreads:          '1'
         target:
           - 'WebCluster'
@@ -2712,9 +2940,31 @@ in hiera
           - 'Cluster'
 
 
+### wls_jdbc_persistence_store
+it needs wls_setting and when identifier is not provided it will use the 'default'.
+
+or use puppet resource wls_jdbc_persistence_store
+
+    wls_jdbc_persistence_store { 'JDBCStoreX':
+      ensure      => 'present',
+      datasource  => 'jmsDS',
+      prefix_name => 'dev_',
+      target      => ['wlsServer1'],
+      targettype  => ['Server'],
+    }
+
+in hiera
+
+    file_jdbc_store_instances:
+      'JDBCStoreX':
+          ensure:      'present'
+          datasource:  'jmsDS'
+          prefix_name: 'dev_'
+          target:      ['wlsServer1']
+          targettype:  ['Server']
+
 
 ### wls_file_persistence_store
-
 it needs wls_setting and when identifier is not provided it will use the 'default'.
 
 or use puppet resource wls_file_persistence_store
@@ -2818,35 +3068,37 @@ in hiera
 
 it needs wls_setting and when identifier is not provided it will use the 'default'.
 
-xaproperties are case sensitive and should be provided as comma separated key=value. Use WLST and run ls() in the JDBCXAParams component of your datasource to determine the valid XA properties which can be set.
+xaproperties are case sensitive and should be provided as an array containing all values.Use WLST and run ls() in the JDBCXAParams component of your datasource to determine the valid XA properties which can be set.
 
 or use puppet resource wls_datasource
 
-    # this will use default as wls_setting identifier
+    # this will use default as wls_setting identifier, no XA properties
     wls_datasource { 'hrDS':
       ensure                           => 'present',
+      connectioncreationretryfrequency => '0',
       drivername                       => 'oracle.jdbc.xa.client.OracleXADataSource',
-      extraproperties                  => ['SendStreamAsBlob=true','oracle.net.CONNECT_TIMEOUT=10000'],
+      extraproperties                  => ['SendStreamAsBlob=true', 'oracle.net.CONNECT_TIMEOUT=10001'],
+      fanenabled                       => '0',
       globaltransactionsprotocol       => 'TwoPhaseCommit',
-      initialcapacity                  => '1',
-      jndinames                        => ['jdbc/hrDS'],
+      initialcapacity                  => '2',
+      initsql                          => 'None',
+      jndinames                        => ['jdbc/hrDS', 'jdbc/hrDS2'],
       maxcapacity                      => '15',
       mincapacity                      => '1',
+      rowprefetchenabled               => '0',
+      rowprefetchsize                  => '48',
+      secondstotrustidlepoolconnection => '10',
       statementcachesize               => '10',
+      target                           => ['wlsServer1', 'wlsServer2'],
+      targettype                       => ['Server', 'Server'],
       testconnectionsonreserve         => '0',
-      target                           => ['WebCluster','WebCluster2'],
-      targettype                       => ['Cluster','Cluster'],
+      testfrequency                    => '120',
       testtablename                    => 'SQL SELECT 1 FROM DUAL',
       url                              => 'jdbc:oracle:thin:@dbagent2.alfa.local:1521/test.oracle.com',
       user                             => 'hr',
-      password                         => 'pass',
-      usexa                            => '1',
-      xaproperties:                    => 'XaSetTransactionTimeout=1,XaRetryIntervalSeconds=300',
-      connectioncreationretryfrequency => '0',
-      secondstotrustidlepoolconnection => '10',
-      testfrequency                    => '120',
+      usexa                            => '0',
     }
-    # this will use default as wls_setting identifier
+    # This will use XA Properties
     wls_datasource { 'jmsDS':
       ensure                     => 'present',
       drivername                 => 'com.mysql.jdbc.Driver',
@@ -2864,6 +3116,7 @@ or use puppet resource wls_datasource
       user                       => 'jms',
       password                   => 'pass',
       usexa                      => '1',
+      xaproperties               => ['RollbackLocalTxUponConnClose=0', 'RecoverOnlyOnce=0', 'KeepLogicalConnOpenOnRelease=0', 'KeepXaConnTillTxComplete=1', 'XaTransactionTimeout=14400', 'XaRetryIntervalSeconds=60', 'XaRetryDurationSeconds=0', 'ResourceHealthMonitoring=1', 'NewXaConnForCommit=0', 'XaSetTransactionTimeout=1', 'XaEndOnlyOnce=0', 'NeedTxCtxOnClose=0'],
       # To Optionally Configure as Gridlink Datasource
       fanenabled                 => '1',
       onsnodelist                => '10.10.10.110:6200,10.10.10.111:6200',
@@ -2999,6 +3252,26 @@ in hiera
          targettype:
            - 'Cluster'
 
+### wls_jms_template
+
+it needs wls_setting and when identifier is not provided it will use the 'default'.
+
+or use puppet resource wls_jms_template
+
+    wls_jms_template { 'jmsClusterModule:Template-0':
+      ensure          => 'present',
+      redeliverydelay => '-1',
+      redeliverylimit => '-1',
+    }
+
+in hiera
+
+    jms_template_instances:
+      'jmsClusterModule:Template':
+        ensure:          'present'
+        redeliverydelay: '-1'
+        redeliverylimit: '-1'
+
 
 ### wls_connection_factory
 
@@ -3072,6 +3345,8 @@ or use puppet resource wls_jms_queue
       subdeployment    => 'jmsServers',
       timetodeliver    => '-1',
       timetolive       => '-1',
+      templatename     => 'Template',
+      messagelogging   => '1',
     }
     wls_jms_queue { 'jmsClusterModule:Queue1':
       ensure           => 'present',
@@ -3086,6 +3361,7 @@ or use puppet resource wls_jms_queue
       subdeployment    => 'jmsServers',
       timetodeliver    => '-1',
       timetolive       => '300000',
+      messagelogging   => '1',
     }
     wls_jms_queue { 'jmsClusterModule:Queue2':
       ensure                  => 'present',
@@ -3099,6 +3375,7 @@ or use puppet resource wls_jms_queue
       subdeployment           => 'jmsServers',
       timetodeliver           => '-1',
       timetolive              => '300000',
+      messagelogging          => '1',
     }
 
 in hiera
@@ -3115,6 +3392,8 @@ in hiera
          defaulttargeting:         '0'
          timetodeliver:            '-1'
          timetolive:               '-1'
+         templatename:             'Template'
+         messagelogging:           '1'
        'jmsClusterModule:Queue1':
          ensure:                   'present'
          distributed:              '1'
@@ -3128,6 +3407,7 @@ in hiera
          defaulttargeting:         '0'
          timetodeliver:            '-1'
          timetolive:               '300000'
+         messagelogging:           '1'
        'jmsClusterModule:Queue2':
          ensure:                   'present'
          distributed:              '1'
@@ -3140,6 +3420,7 @@ in hiera
          defaulttargeting:         '0'
          timetodeliver:            '-1'
          timetolive:               '300000'
+         messagelogging:           '1'
 
 
 ### wls_jms_topic
@@ -3159,6 +3440,7 @@ or use puppet resource wls_jms_topic
       subdeployment    => 'jmsServers',
       timetodeliver    => '-1',
       timetolive       => '300000',
+      messagelogging   => '1',
     }
 
 in hiera
@@ -3175,7 +3457,7 @@ in hiera
          subdeployment:     'jmsServers'
          timetodeliver:     '-1'
          timetolive:        '300000'
-
+         messagelogging:    '0'
 
 
 ### wls_jms_quota

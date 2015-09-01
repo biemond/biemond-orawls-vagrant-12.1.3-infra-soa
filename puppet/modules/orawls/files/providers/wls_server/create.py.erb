@@ -7,35 +7,34 @@ arguments     = '''<%= arguments %>'''
 machineName   = '<%= machine %>'
 bea_home      = '<%= bea_home %>'
 
-
-logFilename                      = '<%= logfilename %>'
-log_http_Filename                = '<%= log_http_filename %>'
-log_http_format                  = '<%= log_http_format %>'
-log_http_format_type             = '<%= log_http_format_type %>'
+logFilename                 = '<%= logfilename %>'
+log_http_Filename           = '<%= log_http_filename %>'
+log_http_format             = '<%= log_http_format %>'
+log_http_format_type        = '<%= log_http_format_type %>'
 log_http_file_count              = '<%= log_http_file_count %>'
 log_http_number_of_files_limited = '<%= log_http_number_of_files_limited %>'
-
-log_datasource_Filename       = '<%= log_datasource_filename %>'
-log_file_min_size             = '<%= log_file_min_size %>'
-log_filecount                 = '<%= log_filecount %>'
-log_rotate_logon_startup      = '<%= log_rotate_logon_startup %>'
-log_rotationtype              = '<%= log_rotationtype %>'
-log_number_of_files_limited   = '<%= log_number_of_files_limited %>'
+log_datasource_Filename     = '<%= log_datasource_filename %>'
+log_file_min_size           = '<%= log_file_min_size %>'
+log_filecount               = '<%= log_filecount %>'
+log_rotate_logon_startup    = '<%= log_rotate_logon_startup %>'
+log_rotationtype            = '<%= log_rotationtype %>'
+log_number_of_files_limited = '<%= log_number_of_files_limited %>'
 log_redirect_stderr_to_server = '<%= log_redirect_stderr_to_server %>'
 log_redirect_stdout_to_server = '<%= log_redirect_stdout_to_server %>'
 
-restart_max   = '<%= restart_max %>'
-listenAddress = '<%= listenaddress %>'
-listenPort    = '<%= listenport %>'
-sslEnabled    = '<%= sslenabled %>'
+restart_max       = '<%= restart_max %>'
+listenAddress     = '<%= listenaddress %>'
+listenPort        = '<%= listenport %>'
+listenPortEnabled = '<%= listenportenabled %>'
+sslEnabled        = '<%= sslenabled %>'
 sslHostnameVerificationIgnored = '<%= sslhostnameverificationignored %>'
-two_way_ssl = '<%= two_way_ssl %>'
+two_way_ssl       = '<%= two_way_ssl %>'
 client_certificate_enforced = '<%= client_certificate_enforced %>'
-sslListenPort = '<%= ssllistenport %>'
+sslListenPort     = '<%= ssllistenport %>'
 
 
-logintimeout  = '<%= logintimeout %>'
-jsseenabled   = '<%= jsseenabled %>'
+logintimeout      = '<%= logintimeout %>'
+jsseenabled       = '<%= jsseenabled %>'
 tunnelingenabled  = '<%= tunnelingenabled %>'
 
 custom_identity                        = '<%= custom_identity %>'
@@ -49,6 +48,14 @@ trust_keystore_passphrase              = '<%= trust_keystore_passphrase %>'
 default_file_store                     = '<%= default_file_store %>'
 max_message_size                       = '<%= max_message_size %>'
 weblogic_plugin_enabled                = '<%= weblogic_plugin_enabled %>'
+auto_restart                           = '<%= auto_restart %>'
+autokillwfail                          = '<%= autokillwfail %>'
+
+server_parameters		       = '<%= server_parameters %>'
+
+frontend_host                  = '<%= frontendhost %>'
+frontend_http_port             = '<%= frontendhttpport %>'
+frontend_https_port            = '<%= frontendhttpsport %>'
 
 edit()
 startEdit()
@@ -88,11 +95,19 @@ try:
     cd('/Servers/'+name)
     set('Machine',getMBean('/Machines/'+machineName))
 
+    print "Change Notes"
+    if server_parameters and server_parameters != 'None':
+      cmo.setNotes(server_parameters)
+
+    print "Change listenAddress"
     if listenAddress and not listenAddress.isspace():
       set('ListenAddress',listenAddress)
 
     if listenPort:
       set('ListenPort', int(listenPort))
+
+    if listenPortEnabled and listenPortEnabled != '-1':
+      set('ListenPortEnabled', formatBoolean(listenPortEnabled))
 
     if logintimeout:
       set('LoginTimeoutMillis', int(logintimeout))
@@ -130,6 +145,34 @@ try:
     if custom_identity == '0':
       set('KeyStores'                                ,'DemoIdentityAndDemoTrust')
 
+    cd('/Servers/'+name)
+    if auto_restart == '0':
+      print "Change AutoRestart"
+      set('AutoRestart','False')
+    else:
+      print "Change AutoRestart"
+      set('AutoRestart','True')
+
+    if autokillwfail == '1':
+      print "Change AutoKillIfFailed"
+      set('AutoKillIfFailed','True')
+    else:
+      print "Change AutoKillIfFailed"
+      set('AutoKillIfFailed','False')
+
+    cd('/Servers/'+name+'/WebServer/'+name)
+
+    if frontend_host:
+      print "Setting Frontend Host"
+      cmo.setFrontendHost(frontend_host)
+
+    print "Setting Frontend HTTP Port"
+    cmo.setFrontendHTTPPort(int(frontend_http_port))
+
+    print "Setting Frontend HTTPS Port"
+    cmo.setFrontendHTTPSPort(int(frontend_https_port))
+
+    print "Change SSL"
     cd('/Servers/'+name+'/SSL/'+name)
 
     if sslEnabled and sslEnabled != '-1':
@@ -210,8 +253,8 @@ try:
     if log_file_min_size:
       cmo.setFileMinSize(int(log_file_min_size))
 
-    cd('/Servers/'+name+'/DefaultFileStore/'+name)
     if default_file_store:
+      cd('/Servers/'+name+'/DefaultFileStore/'+name)
       cmo.setDirectory(default_file_store)
 
     cd('/')
