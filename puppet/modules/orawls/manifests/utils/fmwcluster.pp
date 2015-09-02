@@ -48,37 +48,38 @@ define orawls::utils::fmwcluster (
 
   if ( $soa_enabled ) {
     # check if the soa is already targeted to the cluster on this weblogic domain
-    $found = soa_cluster_configured($domain_dir, $soa_cluster_name)
+    $soa_found = soa_cluster_configured($domain_dir, $soa_cluster_name)
 
-    if $found == undef {
-      $continue = false
-      notify { "orawls::utils::fmwcluster ${title} ${version} continue false cause nill": }
+    if $soa_found == undef or $soa_found == true {
+      $convert_soa = false
     } else {
-      if ($found) {
-        $continue = false
-      } else {
-        notify { "orawls::utils::fmwcluster ${title} ${version} continue true cause not exists": }
-        $continue = true
-      }
-    }
-  } elsif ( $osb_enabled ) {
-    # check if the osb is already targeted to the cluster on this weblogic domain
-    $found = osb_cluster_configured($domain_dir, $osb_cluster_name)
-
-    if $found == undef {
-      $continue = false
-      notify { "orawls::utils::fmwcluster ${title} ${version} continue false cause nill": }
-    } else {
-      if ($found) {
-        $continue = false
-      } else {
-        notify { "orawls::utils::fmwcluster ${title} ${version} continue true cause not exists": }
-        $continue = true
-      }
+      $convert_soa = true
     }
   }
 
-  if ($continue) {
+  if ( $osb_enabled ) {
+    # check if the soa is already targeted to the cluster on this weblogic domain
+    $osb_found = osb_cluster_configured($domain_dir, $osb_cluster_name)
+
+    if $osb_found == undef or $osb_found == true {
+      $convert_osb = false
+    } else {
+      $convert_osb = true
+    }
+  }
+
+  if ( $bam_enabled ) {
+    # check if the soa is already targeted to the cluster on this weblogic domain
+    $bam_found = bam_cluster_configured($domain_dir, $bam_cluster_name)
+
+    if $bam_found == undef or $bam_found == true {
+      $convert_bam = false
+    } else {
+      $convert_bam = true
+    }
+  }
+
+  if $convert_soa or $convert_osb or $convert_bam {
 
     $exec_path = "${jdk_home_dir}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:"
 
@@ -120,6 +121,7 @@ define orawls::utils::fmwcluster (
         path      => $exec_path,
         user      => $os_user,
         group     => $os_group,
+        timeout   => 0,
         logoutput => $log_output,
         require   => [File["${download_dir}/assignOsbSoaBpmBamToClusters${title}.py"],
                       Orawls::Control["ShutdownAdminServerForSoa${title}"],],

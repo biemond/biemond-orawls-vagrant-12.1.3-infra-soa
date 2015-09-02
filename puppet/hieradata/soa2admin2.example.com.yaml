@@ -69,29 +69,12 @@ domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properti
 
 
 
-# create a soa domain
-domain_instances:
-  'soa_domain':
-    version:                  *wls_version
-    domain_template:          "soa_bpm"
-    bam_enabled:              true
-    # b2b_enabled:              true
-    # ess_enabled:              true
-    development_mode:         true
-    log_output:               *logoutput
-    nodemanager_address:      "10.10.10.21"
-    repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
-    repository_prefix:        "DEV"
-    repository_password:      "Welcome01"
-    repository_sys_password:  "Welcome01"
-    rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
-
-# # create a soa domain
+# # create a osb soa domain
 # domain_instances:
 #   'soa_domain':
 #     version:                  *wls_version
-#     domain_template:          "soa_bpm"
-#     bam_enabled:              false
+#     domain_template:          "osb_soa_bpm"
+#     bam_enabled:              true
 #     b2b_enabled:              true
 #     ess_enabled:              true
 #     development_mode:         true
@@ -102,6 +85,38 @@ domain_instances:
 #     repository_password:      "Welcome01"
 #     repository_sys_password:  "Welcome01"
 #     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
+
+# # create a bam domain
+# domain_instances:
+#   'soa_domain':
+#     version:                  *wls_version
+#     domain_template:          "bam"
+#     development_mode:         true
+#     log_output:               *logoutput
+#     nodemanager_address:      "10.10.10.21"
+#     repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
+#     repository_prefix:        "DEV"
+#     repository_password:      "Welcome01"
+#     repository_sys_password:  "Welcome01"
+#     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
+
+
+# create a soa domain
+domain_instances:
+  'soa_domain':
+    version:                  *wls_version
+    domain_template:          "soa_bpm"
+    bam_enabled:              true
+    b2b_enabled:              true
+    ess_enabled:              true
+    development_mode:         true
+    log_output:               *logoutput
+    nodemanager_address:      "10.10.10.21"
+    repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
+    repository_prefix:        "DEV"
+    repository_password:      "Welcome01"
+    repository_sys_password:  "Welcome01"
+    rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
 
 wls_setting_instances:
@@ -136,35 +151,45 @@ userconfig_instances:
      log_output:           *logoutput
      user_config_dir:      '/home/oracle'
 
+# # fmw cluster
+# fmw_cluster_instances:
+#   'soaCluster':
+#     domain_name:          "soa_domain"
+#     soa_cluster_name:     "SoaCluster"
+#     bam_cluster_name:     "BamCluster"
+#     osb_cluster_name:     "OsbCluster"
+#     log_output:           *logoutput
+#     bpm_enabled:          true
+#     bam_enabled:          true
+#     soa_enabled:          true
+#     osb_enabled:          true
+#     b2b_enabled:          true
+#     ess_enabled:          true
+#     repository_prefix:    "DEV"
+
+# # fmw cluster bam only
+# fmw_cluster_instances:
+#   'soaCluster':
+#     domain_name:          "soa_domain"
+#     bam_cluster_name:     "BamCluster"
+#     log_output:           *logoutput
+#     bam_enabled:          true
+#     repository_prefix:    "DEV"
+
 # fmw cluster
 fmw_cluster_instances:
   'soaCluster':
     domain_name:          "soa_domain"
     soa_cluster_name:     "SoaCluster"
     bam_cluster_name:     "BamCluster"
-    # osb_cluster_name:     "OsbCluster"
     log_output:           *logoutput
     bpm_enabled:          true
     bam_enabled:          true
     soa_enabled:          true
-    # osb_enabled:          true
-    # b2b_enabled:          true
-    # ess_enabled:          true
+    osb_enabled:          false
+    b2b_enabled:          true
+    ess_enabled:          true
     repository_prefix:    "DEV"
-
-# # fmw cluster
-# fmw_cluster_instances:
-#   'soaCluster':
-#     domain_name:          "soa_domain"
-#     soa_cluster_name:     "SoaCluster"
-#     log_output:           *logoutput
-#     bpm_enabled:          true
-#     bam_enabled:          false
-#     soa_enabled:          true
-#     osb_enabled:          false
-#     b2b_enabled:          true
-#     ess_enabled:          true
-#     repository_prefix:    "DEV"
 
 
 fmwlogdir_instances:
