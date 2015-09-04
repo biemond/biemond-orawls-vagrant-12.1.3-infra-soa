@@ -124,6 +124,7 @@ all templates creates a WebLogic domain, logs the domain creation output
 - domain 'osb_soa_bpm' -> OSB + SOA Suite + BAM + BPM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
 - domain 'soa'         -> SOA Suite + BAM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
 - domain 'soa_bpm'     -> SOA Suite + BAM + BPM + JRF + EM + OWSM + ESS ( optional with 12.1.3 )
+- domain 'bam'         -> BAM ( only with soa suite installation)
 - domain 'wc_wcc_bpm'  -> WC (webcenter) + WCC ( Content ) + BPM + JRF + EM + OWSM
 - domain 'wc'          -> WC (webcenter) + JRF + EM + OWSM
 - domain 'oim'         -> OIM (Oracle Identity Manager) + OAM ( Oracle Access Manager)
@@ -2334,6 +2335,7 @@ or with JSSE with custom identity and trust
       logfilename                           => '/var/log/weblogic/wlsServer2.log',
       machine                               => 'Node2',
       sslenabled                            => '1',
+      sslhostnameverifier                   => 'None',
       sslhostnameverificationignored        => '1',
       ssllistenport                         => '8201',
       two_way_ssl                           => '0'
@@ -2467,6 +2469,8 @@ or with custom identity and custom truststore
         sslenabled:                            '1'
         ssllistenport:                         '8201'
         sslhostnameverificationignored:        '1'
+        sslhostnameverifier:                   'None'
+        useservercerts:                        '0'
         jsseenabled:                           '1'
         custom_identity:                       '1'
         custom_identity_keystore_filename:     '/vagrant/identity_node1.jks'
@@ -3068,7 +3072,7 @@ in hiera
 
 it needs wls_setting and when identifier is not provided it will use the 'default'.
 
-xaproperties are case sensitive and should be provided as an array containing all values.Use WLST and run ls() in the JDBCXAParams component of your datasource to determine the valid XA properties which can be set.
+xaproperties are case sensitive and should be provided as an array containing all values. Use WLST and run ls() in the JDBCXAParams component of your datasource to determine the valid XA properties which can be set. Preserve the order to ensure idempotent behaviour.
 
 or use puppet resource wls_datasource
 
@@ -3151,7 +3155,19 @@ in hiera
           user:                             'hr'
           password:                         'pass'
           usexa:                            '1'
-          xaproperties:                     'XaSetTransactionTimeout=1,XaRetryIntervalSeconds=300'
+          xaproperties:
+           - 'RollbackLocalTxUponConnClose=0'
+           - 'RecoverOnlyOnce=0'
+           - 'KeepLogicalConnOpenOnRelease=0'
+           - 'KeepXaConnTillTxComplete=1'
+           - 'XaTransactionTimeout=14400'
+           - 'XaRetryIntervalSeconds=60'
+           - 'XaRetryDurationSeconds=0'
+           - 'ResourceHealthMonitoring=1'
+           - 'NewXaConnForCommit=0'
+           - 'XaSetTransactionTimeout=1'
+           - 'XaEndOnlyOnce=0'
+           - 'NeedTxCtxOnClose=0'
           testconnectionsonreserve:         '0'
           secondstotrustidlepoolconnection: '10'
           testfrequency:                    '120'

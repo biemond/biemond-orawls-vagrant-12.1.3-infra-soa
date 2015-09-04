@@ -42,12 +42,12 @@ fmw_installations:
     bpm:                     true
     log_output:              true
     remote_file:             false
-  # 'osb1213':
-  #   version:                 *wls_version
-  #   fmw_product:             "osb"
-  #   fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
-  #   log_output:              true
-  #   remote_file:             false
+  'osb1213':
+    version:                 *wls_version
+    fmw_product:             "osb"
+    fmw_file1:               "fmw_12.1.3.0.0_osb_Disk1_1of1.zip"
+    log_output:              true
+    remote_file:             false
 
 opatch_instances:
   '20423408':
@@ -69,22 +69,22 @@ domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properti
 
 
 
-# # create a osb soa domain
-# domain_instances:
-#   'soa_domain':
-#     version:                  *wls_version
-#     domain_template:          "osb_soa_bpm"
-#     bam_enabled:              true
-#     b2b_enabled:              true
-#     ess_enabled:              true
-#     development_mode:         true
-#     log_output:               *logoutput
-#     nodemanager_address:      "10.10.10.21"
-#     repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
-#     repository_prefix:        "DEV"
-#     repository_password:      "Welcome01"
-#     repository_sys_password:  "Welcome01"
-#     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
+# create a osb soa domain
+domain_instances:
+  'soa_domain':
+    version:                  *wls_version
+    domain_template:          "osb_soa_bpm"
+    bam_enabled:              true
+    b2b_enabled:              true
+    ess_enabled:              true
+    development_mode:         true
+    log_output:               *logoutput
+    nodemanager_address:      "10.10.10.21"
+    repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
+    repository_prefix:        "DEV"
+    repository_password:      "Welcome01"
+    repository_sys_password:  "Welcome01"
+    rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
 # # create a bam domain
 # domain_instances:
@@ -101,22 +101,22 @@ domain_user_key_file:       "/home/oracle/oracle-soa_domain-WebLogicKey.properti
 #     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
 
-# create a soa domain
-domain_instances:
-  'soa_domain':
-    version:                  *wls_version
-    domain_template:          "soa_bpm"
-    bam_enabled:              true
-    b2b_enabled:              true
-    ess_enabled:              true
-    development_mode:         true
-    log_output:               *logoutput
-    nodemanager_address:      "10.10.10.21"
-    repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
-    repository_prefix:        "DEV"
-    repository_password:      "Welcome01"
-    repository_sys_password:  "Welcome01"
-    rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
+# # create a soa domain
+# domain_instances:
+#   'soa_domain':
+#     version:                  *wls_version
+#     domain_template:          "soa_bpm"
+#     bam_enabled:              true
+#     b2b_enabled:              true
+#     ess_enabled:              true
+#     development_mode:         true
+#     log_output:               *logoutput
+#     nodemanager_address:      "10.10.10.21"
+#     repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
+#     repository_prefix:        "DEV"
+#     repository_password:      "Welcome01"
+#     repository_sys_password:  "Welcome01"
+#     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
 
 
 wls_setting_instances:
@@ -151,21 +151,21 @@ userconfig_instances:
      log_output:           *logoutput
      user_config_dir:      '/home/oracle'
 
-# # fmw cluster
-# fmw_cluster_instances:
-#   'soaCluster':
-#     domain_name:          "soa_domain"
-#     soa_cluster_name:     "SoaCluster"
-#     bam_cluster_name:     "BamCluster"
-#     osb_cluster_name:     "OsbCluster"
-#     log_output:           *logoutput
-#     bpm_enabled:          true
-#     bam_enabled:          true
-#     soa_enabled:          true
-#     osb_enabled:          true
-#     b2b_enabled:          true
-#     ess_enabled:          true
-#     repository_prefix:    "DEV"
+# fmw cluster
+fmw_cluster_instances:
+  'soaCluster':
+    domain_name:          "soa_domain"
+    soa_cluster_name:     "SoaCluster"
+    bam_cluster_name:     "BamCluster"
+    osb_cluster_name:     "OsbCluster"
+    log_output:           *logoutput
+    bpm_enabled:          true
+    bam_enabled:          true
+    soa_enabled:          true
+    osb_enabled:          true
+    b2b_enabled:          true
+    ess_enabled:          true
+    repository_prefix:    "DEV"
 
 # # fmw cluster bam only
 # fmw_cluster_instances:
@@ -176,20 +176,20 @@ userconfig_instances:
 #     bam_enabled:          true
 #     repository_prefix:    "DEV"
 
-# fmw cluster
-fmw_cluster_instances:
-  'soaCluster':
-    domain_name:          "soa_domain"
-    soa_cluster_name:     "SoaCluster"
-    bam_cluster_name:     "BamCluster"
-    log_output:           *logoutput
-    bpm_enabled:          true
-    bam_enabled:          true
-    soa_enabled:          true
-    osb_enabled:          false
-    b2b_enabled:          true
-    ess_enabled:          true
-    repository_prefix:    "DEV"
+# # fmw cluster
+# fmw_cluster_instances:
+#   'soaCluster':
+#     domain_name:          "soa_domain"
+#     soa_cluster_name:     "SoaCluster"
+#     bam_cluster_name:     "BamCluster"
+#     log_output:           *logoutput
+#     bpm_enabled:          true
+#     bam_enabled:          true
+#     soa_enabled:          true
+#     osb_enabled:          false
+#     b2b_enabled:          true
+#     ess_enabled:          true
+#     repository_prefix:    "DEV"
 
 
 fmwlogdir_instances:
@@ -205,10 +205,10 @@ fmwlogdir_instances:
      log_output:      true
      server:          'BamServer1'
      require:         Orawls::Utils::Fmwcluster[soaCluster]
-  # 'OsbServer1':
-  #    log_output:      true
-  #    server:          'OsbServer1'
-  #    require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'OsbServer1':
+     log_output:      true
+     server:          'OsbServer1'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
   'SoaServer2':
      log_output:      true
      server:          'SoaServer2'
@@ -217,10 +217,10 @@ fmwlogdir_instances:
      log_output:      true
      server:          'BamServer2'
      require:         Orawls::Utils::Fmwcluster[soaCluster]
-  # 'OsbServer2':
-  #    log_output:      true
-  #    server:          'OsbServer2'
-  #    require:         Orawls::Utils::Fmwcluster[soaCluster]
+  'OsbServer2':
+     log_output:      true
+     server:          'OsbServer2'
+     require:         Orawls::Utils::Fmwcluster[soaCluster]
 
 
 machines_instances:
@@ -401,70 +401,70 @@ server_instances:
      jsseenabled:                           '1'
      require:
        - Wls_machine[Node2]
-  # 'OsbServer1':
-  #    ensure:                                'present'
-  #    arguments:
-  #      - *server_vm_args_permsize
-  #      - *server_vm_args_max_permsize
-  #      - *server_vm_args_memory
-  #      - *server_vm_args_max_memory
-  #      - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer1.out'
-  #      - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer1_err.out'
-  #    listenaddress:                         '10.10.10.21'
-  #    listenport:                            '8011'
-  #    logfilename:                           '/var/log/weblogic/OsbServer1.log'
-  #    log_file_min_size:                     '5000'
-  #    log_filecount:                         '10'
-  #    log_number_of_files_limited:           '1'
-  #    log_rotate_logon_startup:              '1'
-  #    log_rotationtype:                      'bySize'
-  #    log_datasource_filename:               '/var/log/weblogic/OSB1_datasource.log'
-  #    log_http_filename:                     '/var/log/weblogic/OSB1_access.log'
-  #    log_http_format:                       'date time cs-method cs-uri sc-status'
-  #    log_http_format_type:                  'common'
-  #    log_http_file_count:                   '10'
-  #    log_http_number_of_files_limited:      '1'
-  #    log_redirect_stderr_to_server:         '0'
-  #    log_redirect_stdout_to_server:         '0'
-  #    machine:                               'Node1'
-  #    sslenabled:                            '0'
-  #    ssllistenport:                         '8012'
-  #    sslhostnameverificationignored:        '1'
-  #    jsseenabled:                           '1'
-  #    require:
-  #      - Wls_machine[Node1]
-  # 'OsbServer2':
-  #    ensure:                                'present'
-  #    arguments:
-  #      - *server_vm_args_permsize
-  #      - *server_vm_args_max_permsize
-  #      - *server_vm_args_memory
-  #      - *server_vm_args_max_memory
-  #      - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer2.out'
-  #      - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer2_err.out'
-  #    listenaddress:                         '10.10.10.22'
-  #    listenport:                            '8011'
-  #    logfilename:                           '/var/log/weblogic/OsbServer2.log'
-  #    log_file_min_size:                     '5000'
-  #    log_filecount:                         '10'
-  #    log_number_of_files_limited:           '1'
-  #    log_rotate_logon_startup:              '1'
-  #    log_rotationtype:                      'bySize'
-  #    log_datasource_filename:               '/var/log/weblogic/OSB2_datasource.log'
-  #    log_http_filename:                     '/var/log/weblogic/OSB2_access.log'
-  #    log_http_format:                       'date time cs-method cs-uri sc-status'
-  #    log_http_format_type:                  'common'
-  #    log_http_file_count:                   '10'
-  #    log_http_number_of_files_limited:      '1'
-  #    log_redirect_stderr_to_server:         '0'
-  #    log_redirect_stdout_to_server:         '0'
-  #    machine:                               'Node2'
-  #    sslenabled:                            '0'
-  #    ssllistenport:                         '8012'
-  #    sslhostnameverificationignored:        '1'
-  #    jsseenabled:                           '1'
-  #    require:
-  #      - Wls_machine[Node2]
+  'OsbServer1':
+     ensure:                                'present'
+     arguments:
+       - *server_vm_args_permsize
+       - *server_vm_args_max_permsize
+       - *server_vm_args_memory
+       - *server_vm_args_max_memory
+       - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer1.out'
+       - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer1_err.out'
+     listenaddress:                         '10.10.10.21'
+     listenport:                            '8011'
+     logfilename:                           '/var/log/weblogic/OsbServer1.log'
+     log_file_min_size:                     '5000'
+     log_filecount:                         '10'
+     log_number_of_files_limited:           '1'
+     log_rotate_logon_startup:              '1'
+     log_rotationtype:                      'bySize'
+     log_datasource_filename:               '/var/log/weblogic/OSB1_datasource.log'
+     log_http_filename:                     '/var/log/weblogic/OSB1_access.log'
+     log_http_format:                       'date time cs-method cs-uri sc-status'
+     log_http_format_type:                  'common'
+     log_http_file_count:                   '10'
+     log_http_number_of_files_limited:      '1'
+     log_redirect_stderr_to_server:         '0'
+     log_redirect_stdout_to_server:         '0'
+     machine:                               'Node1'
+     sslenabled:                            '0'
+     ssllistenport:                         '8012'
+     sslhostnameverificationignored:        '1'
+     jsseenabled:                           '1'
+     require:
+       - Wls_machine[Node1]
+  'OsbServer2':
+     ensure:                                'present'
+     arguments:
+       - *server_vm_args_permsize
+       - *server_vm_args_max_permsize
+       - *server_vm_args_memory
+       - *server_vm_args_max_memory
+       - '-Dweblogic.Stdout=/var/log/weblogic/OsbServer2.out'
+       - '-Dweblogic.Stderr=/var/log/weblogic/OsbServer2_err.out'
+     listenaddress:                         '10.10.10.22'
+     listenport:                            '8011'
+     logfilename:                           '/var/log/weblogic/OsbServer2.log'
+     log_file_min_size:                     '5000'
+     log_filecount:                         '10'
+     log_number_of_files_limited:           '1'
+     log_rotate_logon_startup:              '1'
+     log_rotationtype:                      'bySize'
+     log_datasource_filename:               '/var/log/weblogic/OSB2_datasource.log'
+     log_http_filename:                     '/var/log/weblogic/OSB2_access.log'
+     log_http_format:                       'date time cs-method cs-uri sc-status'
+     log_http_format_type:                  'common'
+     log_http_file_count:                   '10'
+     log_http_number_of_files_limited:      '1'
+     log_redirect_stderr_to_server:         '0'
+     log_redirect_stdout_to_server:         '0'
+     machine:                               'Node2'
+     sslenabled:                            '0'
+     ssllistenport:                         '8012'
+     sslhostnameverificationignored:        '1'
+     jsseenabled:                           '1'
+     require:
+       - Wls_machine[Node2]
 
 
 # create cluster and assign the managed servers
@@ -489,13 +489,73 @@ cluster_instances:
     require:
       - Wls_server[BamServer1]
       - Wls_server[BamServer2]
-  # 'OsbCluster':
-  #   ensure:         'present'
-  #   messagingmode:  'unicast'
-  #   migrationbasis: 'database'
-  #   servers:
-  #     - 'OsbServer1'
-  #     - 'OsbServer2'
-  #   require:
-  #     - Wls_server[OsbServer1]
-  #     - Wls_server[OsbServer2]
+  'OsbCluster':
+    ensure:         'present'
+    messagingmode:  'unicast'
+    migrationbasis: 'database'
+    servers:
+      - 'OsbServer1'
+      - 'OsbServer2'
+    require:
+      - Wls_server[OsbServer1]
+      - Wls_server[OsbServer2]
+
+
+resource_adapter_instances:
+  'JmsAdapter_hr':
+    adapter_name:              'JmsAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/JmsAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_JMS.xml'
+    adapter_entry:             'eis/JMS/cf'
+    adapter_entry_property:    'ConnectionFactoryLocation'
+    adapter_entry_value:       'jms/cf'
+  'JmsAdapter_hr2':
+    adapter_name:              'JmsAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/JmsAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_JMS.xml'
+    adapter_entry:             'eis/JMS/cf2'
+    adapter_entry_property:    'ConnectionFactoryLocation'
+    adapter_entry_value:       'jms/cf2'
+  'AqAdapter_hr':
+    adapter_name:              'AqAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/AqAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_AQ.xml'
+    adapter_entry:             'eis/AQ/hr'
+    adapter_entry_property:    'XADataSourceName'
+    adapter_entry_value:       'jdbc/hrDS'
+  'DbAdapter_hr':
+    adapter_name:              'DbAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/DbAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_DB.xml'
+    adapter_entry:             'eis/DB/hr'
+    adapter_entry_property:    'XADataSourceName'
+    adapter_entry_value:       'jdbc/hrDS'
+  'DbAdapter_hr2':
+    adapter_name:              'DbAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/DbAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_DB.xml'
+    adapter_entry:             'eis/DB/hr2'
+    adapter_entry_property:    'xADataSourceName'
+    adapter_entry_value:       'jdbc/hrDS2'
+    log_output:                *logoutput
+  'FTPAdapter_hr':
+    adapter_name:              'FtpAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/FtpAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_FTP.xml'
+    adapter_entry:             'eis/FTP/xx'
+    adapter_entry_property:    'FtpAbsolutePathBegin;FtpPathSeparator;Host;ListParserKey;Password;ServerType;UseFtps;Username;UseSftp'
+    adapter_entry_value:       '/BDDC;/;l2-ibrfongen02.nl.rsg;UNIX;;unix;false;kim;false'
+  'FileAdapter_hr':
+    adapter_name:              'FileAdapter'
+    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/FileAdapter.rar"
+    adapter_plan_dir:          "/opt/oracle/middleware12c"
+    adapter_plan:              'Plan_FILE.xml'
+    adapter_entry:             'eis/FileAdapterXX'
+    adapter_entry_property:    'ControlDir;IsTransacted'
+    adapter_entry_value:       '/tmp/aaa;false'

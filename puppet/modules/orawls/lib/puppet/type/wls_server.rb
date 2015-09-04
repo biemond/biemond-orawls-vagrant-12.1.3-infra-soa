@@ -1,9 +1,5 @@
-require 'pathname'
-require 'easy_type'
-require 'utils/wls_access'
-require 'utils/settings'
-require 'utils/title_parser'
-require 'facter'
+require File.dirname(__FILE__) + '/../../orawls_core'
+
 
 module Puppet
   Type.newtype(:wls_server) do
@@ -94,6 +90,8 @@ module Puppet
     property :weblogic_plugin_enabled
 
     property :custom_identity
+    property :useservercerts
+    property :sslhostnameverifier
 
     property :auto_restart
     property :autokillwfail

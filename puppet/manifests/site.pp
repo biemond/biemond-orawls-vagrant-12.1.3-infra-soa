@@ -18,6 +18,7 @@ node 'soa2admin2.example.com','mft1admin.example.com' {
   include workmanagers
   include file_persistence
   include jms
+  include resource_adapter
   include pack_domain
 
   Class[java] -> Class[orawls::weblogic]
@@ -376,8 +377,15 @@ class jms{
   create_resources('wls_saf_imported_destination_object',$saf_imported_destination_object_instances, $default_params)
 }
 
-class pack_domain{
+class resource_adapter {
   require jms
+  $default_params = {}
+  $resource_adapter_instances = hiera('resource_adapter_instances', {})
+  create_resources('orawls::resourceadapter',$resource_adapter_instances, $default_params)
+}
+
+class pack_domain{
+  require resource_adapter
 
   $default_params = {}
   $pack_domain_instances = hiera('pack_domain_instances', $default_params)
