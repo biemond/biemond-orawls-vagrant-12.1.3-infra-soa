@@ -28,9 +28,9 @@ Vagrant boxes
 - oracle oracle
 
 ###software
-- Oracle Database 11.2.0.4 Linux
-- 1395582860 Aug 31 16:21 p13390677_112040_Linux-x86-64_1of7.zip
-- 1151304589 Aug 31 16:22 p13390677_112040_Linux-x86-64_2of7.zip
+- Oracle Database 12.1.0.2 SE Linux
+- linuxamd64_12102_database_se2_1of2.zip
+- linuxamd64_12102_database_se2_2of2.zip
 
 ## Middleware
 

@@ -2,7 +2,7 @@ Package{allow_virtual => false,}
 
 node 'soadb.example.com' {
   include oradb_os
-  include oradb_11g
+  include oradb_12c
 }
 
 # operating settings for Database & Middleware
@@ -41,13 +41,25 @@ class oradb_os {
     managehome  => true,
   }
 
-  $install = ['binutils.x86_64', 'compat-libstdc++-33.x86_64', 'glibc.x86_64',
-              'ksh.x86_64','libaio.x86_64',
-              'libgcc.x86_64', 'libstdc++.x86_64', 'make.x86_64','compat-libcap1.x86_64',
+  $install = ['binutils.x86_64',
+              'compat-libstdc++-33.x86_64',
+              'glibc.x86_64',
+              'ksh.x86_64',
+              'libaio.x86_64',
+              'libgcc.x86_64',
+              'libstdc++.x86_64',
+              'make.x86_64',
+              'compat-libcap1.x86_64',
               'gcc.x86_64',
-              'gcc-c++.x86_64','glibc-devel.x86_64','libaio-devel.x86_64',
+              'gcc-c++.x86_64',
+              'glibc-devel.x86_64',
+              'libaio-devel.x86_64',
               'libstdc++-devel.x86_64',
-              'sysstat.x86_64','unixODBC-devel','glibc.i686','libXext.x86_64','libXtst.x86_64']
+              'sysstat.x86_64',
+              'unixODBC-devel',
+              'glibc.i686',
+              'libXext.x86_64',
+              'libXtst.x86_64']
 
 
   package { $install:
@@ -83,12 +95,12 @@ class oradb_os {
   sysctl { 'net.core.wmem_max':             ensure => 'present', permanent => 'yes', value => '1048576',}
 }
 
-class oradb_11g {
+class oradb_12c {
   require oradb_os
 
-    oradb::installdb{ '11.2_linux-x64':
-      version                   => '11.2.0.4',
-      file                      => 'p13390677_112040_Linux-x86-64',
+    oradb::installdb{ '12.1_linux-x64':
+      version                   => '12.1.0.2',
+      file                      => 'linuxamd64_12102_database_se2',
       database_type             => 'SE',
       oracle_base               => hiera('oracle_base_dir'),
       oracle_home               => hiera('oracle_home_dir'),
@@ -105,16 +117,16 @@ class oradb_11g {
 
     oradb::net{ 'config net8':
       oracle_home  => hiera('oracle_home_dir'),
-      version      => '11.2',
+      version      => '12.1',
       user         => hiera('oracle_os_user'),
       group        => hiera('oracle_os_group'),
       download_dir => hiera('oracle_download_dir'),
-      require      => Oradb::Installdb['11.2_linux-x64'],
+      require      => Oradb::Installdb['12.1_linux-x64'],
     }
 
     oradb::listener{'start listener':
-      oracle_base   => hiera('oracle_base_dir'),
-      oracle_home   => hiera('oracle_home_dir'),
+      oracle_base  => hiera('oracle_base_dir'),
+      oracle_home  => hiera('oracle_home_dir'),
       user         => hiera('oracle_os_user'),
       group        => hiera('oracle_os_group'),
       action       => 'start',
@@ -124,7 +136,7 @@ class oradb_11g {
     oradb::database{ 'oraDb':
       oracle_base              => hiera('oracle_base_dir'),
       oracle_home              => hiera('oracle_home_dir'),
-      version                  => '11.2',
+      version                  => '12.1',
       user                     => hiera('oracle_os_user'),
       group                    => hiera('oracle_os_group'),
       download_dir             => hiera('oracle_download_dir'),
@@ -139,8 +151,8 @@ class oradb_11g {
       nationalcharacter_set    => "UTF8",
       # initParams              => "open_cursors=1000,processes=600,job_queue_processes=4",
       init_params              => {'open_cursors'        => '1000',
-                                  'processes'           => '600',
-                                  'job_queue_processes' => '4' },
+                                   'processes'           => '600',
+                                   'job_queue_processes' => '4' },
       sample_schema            => 'FALSE',
       memory_percentage        => "40",
       memory_total             => "800",

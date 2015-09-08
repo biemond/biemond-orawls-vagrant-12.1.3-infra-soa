@@ -2,7 +2,7 @@
 
 # global oracle vars
 oracle_base_dir:          '/oracle'
-oracle_home_dir:          '/oracle/product/11.2/db'
+oracle_home_dir:          '/oracle/product/12.1/db'
 
 # global OS vars
 oracle_os_user:           "oracle"
@@ -11,7 +11,7 @@ oracle_download_dir:      "/var/tmp/install"
 oracle_source:            "/software"
 
 oracle_database_name:         'soarepos'
-oracle_database_domain_name:  'example.com'  
+oracle_database_domain_name:  'example.com'
 oracle_database_service_name: 'soarepos.example.com'
 oracle_database_host:         'soadb.example.com:1521'
 
