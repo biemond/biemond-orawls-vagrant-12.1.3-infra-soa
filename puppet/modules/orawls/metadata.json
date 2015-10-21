@@ -16,6 +16,10 @@
     {
       "name": "fiddyspence/sleep",
       "version_requirement": ">=1.2.0"
+    },
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">=4.9.0"
     }
   ],
   "description": "Only for Linux & Solaris \nOracle WebLogic module optimized for Hiera and Puppet 3\nwls native types & providers like wls_machine, wls_server and wls_cluster\n\nbased on the wls module",
@@ -24,7 +28,7 @@
   "project_page": "https://github.com/biemond/biemond-orawls",
   "source": "https://github.com/biemond/biemond-orawls",
   "summary": "Oracle WebLogic puppet module v2 for Linux & Solaris with wls puppey types & providers, optimized for Hiera",
-  "version": "1.0.40",
+  "version": "1.0.43",
   "tags": [
     "weblogic",
     "11g",

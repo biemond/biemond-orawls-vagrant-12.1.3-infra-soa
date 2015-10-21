@@ -1,4 +1,8 @@
 language: ruby
+sudo: false
+cache:
+  directories:
+  - vendor/bundle
 rvm:
   - 1.9.3
   - 2.0.0
@@ -14,5 +18,6 @@ notifications:
     - biemond@gmail.com
 env:
   - PUPPET_VERSION=3.3.2
-  - PUPPET_VERSION=3.4.1
   - PUPPET_VERSION=3.6.2
+  - PUPPET_VERSION=3.8.2
+  - PUPPET_VERSION=4.2.1

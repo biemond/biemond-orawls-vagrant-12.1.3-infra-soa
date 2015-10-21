@@ -50,6 +50,12 @@ fmw_installations:
     remote_file:             false
 
 opatch_instances:
+  '20838345':
+    oracle_product_home_dir:  *wls_middleware_home_dir
+    patch_id:                 "20838345"
+    patch_file:               "p20838345_121300_Generic.zip"
+    log_output:               true
+    remote_file:              false
   '20423408':
     oracle_product_home_dir:  *wls_middleware_home_dir
     patch_id:                 "20423408"

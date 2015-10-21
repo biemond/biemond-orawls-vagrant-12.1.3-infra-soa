@@ -13,6 +13,8 @@ define jdk7::config::javaexec (
   $alternatives_priority       = undef,
   $user                        = undef,
   $group                       = undef,
+  $default_links               = undef,
+  $install_alternatives        = undef,
 ) {
 
   # check java install folder
@@ -56,7 +58,7 @@ define jdk7::config::javaexec (
       command   => "tar -xzf ${download_dir}/${cryptography_extension_file}",
       creates   => "${java_homes_dir}/${full_version}/jre/lib/security/US_export_policy.jar",
       require   => [File[$java_homes_dir],Exec["extract java ${full_version}"]],
-      before    => Exec["chown -R root:root ${java_homes_dir}/${full_version}"],
+      before    => Exec["chown -R ${user}:${group} ${java_homes_dir}/${full_version}"],
       path      => '/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:',
       logoutput => true,
       user      => $user,
@@ -65,8 +67,8 @@ define jdk7::config::javaexec (
   }
 
   # set permissions
-  exec { "chown -R root:root ${java_homes_dir}/${full_version}":
-    unless    => "ls -al ${java_homes_dir}/${full_version}/bin/java | awk ' { print \$3 }' |  grep  root",
+  exec { "chown -R ${user}:${group} ${java_homes_dir}/${full_version}":
+    unless    => "ls -al ${java_homes_dir}/${full_version}/bin/java | awk ' { print \$3 }' |  grep  ${user}",
     path      => '/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:',
     logoutput => true,
     user      => $user,
@@ -74,36 +76,38 @@ define jdk7::config::javaexec (
     require   => Exec["extract java ${full_version}"],
   }
 
-  # java link to latest
-  file { '/usr/java/latest':
-    ensure  => link,
-    target  => "${java_homes_dir}/${full_version}",
-    require => Exec["extract java ${full_version}"],
-    replace => false,
-    owner   => $user,
-    group   => $group,
-    mode    => '0755',
-  }
+  if ( $default_links ){
+    # java link to latest
+    file { '/usr/java/latest':
+      ensure  => link,
+      target  => "${java_homes_dir}/${full_version}",
+      require => Exec["extract java ${full_version}"],
+      replace => false,
+      owner   => $user,
+      group   => $group,
+      mode    => '0755',
+    }
 
-  # java link to default
-  file { '/usr/java/default':
-    ensure  => link,
-    target  => '/usr/java/latest',
-    require => File['/usr/java/latest'],
-    replace => false,
-    owner   => $user,
-    group   => $group,
-    mode    => '0755',
+    # java link to default
+    file { '/usr/java/default':
+      ensure  => link,
+      target  => '/usr/java/latest',
+      require => File['/usr/java/latest'],
+      replace => false,
+      owner   => $user,
+      group   => $group,
+      mode    => '0755',
+    }
   }
 
   $alternatives = [ 'java', 'javac', 'keytool']
-
-  jdk7::config::alternatives{ $alternatives:
-    java_home_dir => $java_homes_dir,
-    full_version  => $full_version,
-    priority      => $alternatives_priority,
-    user          => $user,
-    group         => $group,
+  if ( $install_alternatives ){
+    jdk7::config::alternatives{ $alternatives:
+      java_home_dir => $java_homes_dir,
+      full_version  => $full_version,
+      priority      => $alternatives_priority,
+      user          => $user,
+      group         => $group,
+    }
   }
-
 }

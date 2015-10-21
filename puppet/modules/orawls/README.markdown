@@ -81,7 +81,9 @@ Dependency with
 - [wls_machine](#wls_machine)
 - [wls_server](#wls_server)
 - [wls_server_channel](#wls_server_channel)
+- [wls_server_tlog](#wls_server_tlog)
 - [wls_cluster](#wls_cluster)
+- [wls_migratable_target](#wls_migratable_target)
 - [wls_singleton_service](#wls_singleton_service)
 - [wls_coherence_cluster](#wls_coherence_cluster)
 - [wls_coherence_server](#wls_coherence_server)
@@ -537,8 +539,6 @@ common.yaml
          download_dir:             "/data/install"
          source:                   "/vagrant"
          log_output:               true
-
-
 
 or when you set the defaults hiera variables
 
@@ -1434,7 +1434,7 @@ or when you set the defaults hiera variables
 
 
 ### resourceadapter
-__orawls::resourceadapter__ Add a Resource adapter plan for Aq ,DB or JMS with some entries
+__orawls::resourceadapter__ Add a Resource adapter plan for File, FTP, Aq , DB or JMS with some entries
 when you set the defaults hiera variables
 
     $default_params = {}
@@ -1477,6 +1477,15 @@ or when you set the defaults hiera variables
         adapter_entry:             'eis/FTP/xx'
         adapter_entry_property:    'FtpAbsolutePathBegin;FtpPathSeparator;Host;ListParserKey;Password;ServerType;UseFtps;Username;UseSftp'
         adapter_entry_value:       '/BDDC;/;l2-ibrfongen02.nl.rsg;UNIX;;unix;false;kim;false'
+      'FileAdapter_hr':
+        adapter_name:              'FileAdapter'
+        adapter_path:              "/opt/oracle/middleware11g/Oracle_SOA1/soa/connectors/FileAdapter.rar"
+        adapter_plan_dir:          "/opt/oracle/wlsdomains"
+        adapter_plan:              'Plan_FILE.xml'
+        adapter_entry:             'eis/FileAdapterXX'
+        adapter_entry_property:    'ControlDir;IsTransacted'
+        adapter_entry_value:       '/tmp/aaa;false'
+
 
 or for 12.1.3 ( 12c )
 
@@ -1513,7 +1522,14 @@ or for 12.1.3 ( 12c )
         adapter_entry:             'eis/FTP/xx'
         adapter_entry_property:    'FtpAbsolutePathBegin;FtpPathSeparator;Host;ListParserKey;Password;ServerType;UseFtps;Username;UseSftp'
         adapter_entry_value:       '/BDDC;/;l2-ibrfongen02.nl.rsg;UNIX;;unix;false;kim;false'
-
+      'FileAdapter_hr':
+        adapter_name:              'FileAdapter'
+        adapter_path:              "/oracle/product/12.1/middleware/soa/soa/connectors/FileAdapter.rar"
+        adapter_plan_dir:          "/oracle/product/12.1/middleware"
+        adapter_plan:              'Plan_FILE.xml'
+        adapter_entry:             'eis/FileAdapterXX'
+        adapter_entry_property:    'ControlDir;IsTransacted'
+        adapter_entry_value:       '/tmp/aaa;false'
 
 
 ### fmwcluster
@@ -2606,6 +2622,66 @@ in hiera
         # require:
         #   - Wls_server[wlsServer2]
 
+### wls_server_tlog
+
+it needs wls_setting and when identifier is not provided it will use the 'default', the title must also contain the server name
+
+or use puppet resource wls_server_tlog
+
+For this you need to configure a non transactional datasource
+
+in hiera
+
+    datasource_instances:
+        'tlogDS':
+          ensure:                      'present'
+          drivername:                  'oracle.jdbc.OracleDriver'
+          globaltransactionsprotocol:  'None'
+          initialcapacity:             '2'
+          jndinames:
+            - 'jdbc/tlogDS'
+          maxcapacity:                 '15'
+          target:
+            - 'WebServer1'
+            - 'JmsWlsServer1'
+          targettype:
+            - 'Server'
+            - 'Server'
+          testtablename:               'SQL SELECT 1 FROM DUAL'
+          url:                         "jdbc:oracle:thin:@wlsdb.example.com:1521/wlsrepos.example.com"
+          user:                        'tlog'
+          password:                    'tlog'
+          usexa:                       '1'
+
+    server_tlog_instances:
+      'JmsWlsServer1':
+          ensure:                      'present'
+          tlog_enabled:                'true'
+          tlog_datasource:             'tlogDS'
+          tlog_datasource_prefix:      'TLOG_JmsWlsServer1_'
+      'WebServer1':
+          ensure:                      'present'
+          tlog_enabled:                'true'
+          tlog_datasource:             'tlogDS'
+          tlog_datasource_prefix:      'TLOG_WebServer1_'
+
+
+Or as manifest
+
+    wls_server_tlog { 'default/JmsWlsServer1':
+      ensure                 => 'present',
+      tlog_datasource        => 'tlogDS',
+      tlog_datasource_prefix => 'TLOG_JmsWlsServer1_',
+      tlog_enabled           => 'true',
+    }
+    wls_server_tlog { 'default/WebServer1':
+      ensure                 => 'present',
+      tlog_datasource        => 'tlogDS',
+      tlog_datasource_prefix => 'TLOG_WebServer1_',
+      tlog_enabled           => 'true',
+    }
+
+
 ### wls_cluster
 
 it needs wls_setting and when identifier is not provided it will use the 'default'.
@@ -2646,6 +2722,68 @@ in hiera
         servers:
           - 'wlsServer1'
           - 'wlsServer2'
+
+### wls_migratable_target
+
+it needs wls_setting and when identifier is not provided it will use the 'default'.
+
+or use puppet resource wls_migratable_target
+
+    wls_migratable_target { 'wlsServer1 (migratable)':
+      ensure                     => 'present',
+      cluster                    => 'WebCluster',
+      migration_policy           => 'manual',
+      number_of_restart_attempts => '6',
+      seconds_between_restarts   => '30',
+      user_preferred_server      => 'wlsServer1',
+    }
+    wls_migratable_target { 'wlsServer2 (migratable)':
+      ensure                     => 'present',
+      cluster                    => 'WebCluster',
+      migration_policy           => 'manual',
+      number_of_restart_attempts => '6',
+      seconds_between_restarts   => '30',
+      user_preferred_server      => 'wlsServer2',
+    }
+
+    wls_migratable_target { 'Wls11gSetting/wlsServer1 (migratable)':
+      ensure                     => 'present',
+      cluster                    => 'WebCluster',
+      migration_policy           => 'manual',
+      number_of_restart_attempts => '6',
+      seconds_between_restarts   => '30',
+      user_preferred_server      => 'wlsServer1',
+    }
+    wls_migratable_target { 'Wls11gSetting/wlsServer2 (migratable)':
+      ensure                     => 'present',
+      cluster                    => 'WebCluster',
+      migration_policy           => 'manual',
+      number_of_restart_attempts => '6',
+      seconds_between_restarts   => '30',
+      user_preferred_server      => 'wlsServer2',
+    }
+
+or in hiera
+
+    migratable_target_instances:
+      'wlsServer1 (migratable)':
+          ensure:                     'present'
+          cluster:                    'WebCluster'
+          migration_policy:           'manual'
+          number_of_restart_attempts: '6'
+          seconds_between_restarts:   '30'
+          user_preferred_server:      'wlsServer1'
+          require:
+            - Wls_cluster[WebCluster]
+      'wlsServer2 (migratable)':
+          ensure:                     'present'
+          cluster:                    'WebCluster'
+          migration_policy:           'manual'
+          number_of_restart_attempts: '6'
+          seconds_between_restarts:   '30'
+          user_preferred_server:      'wlsServer2'
+          require:
+            - Wls_cluster[WebCluster]
 
 ### wls_singleton_service
 

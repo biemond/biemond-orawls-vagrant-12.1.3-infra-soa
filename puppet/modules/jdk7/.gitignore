@@ -1,4 +1,5 @@
+.bundle
+*.lock
+coverage
+spec/reports
 pkg
-.DS_Store
-
-Gemfile.lock

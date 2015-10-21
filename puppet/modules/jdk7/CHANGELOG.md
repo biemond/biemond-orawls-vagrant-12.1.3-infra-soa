@@ -1,5 +1,17 @@
 # History
 
+## 0.5.1
+- option to skip the creation of default java links and to set java alternatives/priorities
+
+## 0.5.0
+- Refactored this module so it works with puppet4
+
+## 0.4.12
+- Added urandom fixes and use notify when there is rngd configuration refresh
+
+## 0.4.10
+- urandom fix for JDK 8
+
 ## 0.4.9
 - also check if the java alternatives priority is correct
 
