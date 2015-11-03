@@ -21,7 +21,7 @@ try:
         if get('ApplicationName') == name:
           currentApp = get('ApplicationName')
     else:
-      library = 'false'  
+      library = 'false'
       myapps=cmo.getAppDeployments()
       for appName in myapps:
         cd('/AppDeployments/'+appName.getName() )
@@ -35,7 +35,7 @@ try:
     undeploy(currentApp, timeout=60000)
 
     save()
-    activate()          
+    activate()
     print "~~~~COMMAND SUCCESFULL~~~~"
 
 except:

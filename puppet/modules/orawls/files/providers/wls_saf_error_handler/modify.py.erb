@@ -16,21 +16,21 @@ try:
 
     cd('/')
     cd('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/SAFErrorHandlings/'+name)
-    
+
     # if errordestination:
     #   cmo.setSAFErrorDestination(getMBean('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/UniformDistributedQueues/'+errordestination))
     # else:
-    #   cmo.setSAFErrorDestination(None) 
+    #   cmo.setSAFErrorDestination(None)
 
     cmo.setPolicy(policy)
 
     if logformat:
       cmo.setLogFormat(logformat)
     else:
-      cmo.setLogFormat(None)  
+      cmo.setLogFormat(None)
 
     save()
-    activate()          
+    activate()
     print "~~~~COMMAND SUCCESFULL~~~~"
 
 except:

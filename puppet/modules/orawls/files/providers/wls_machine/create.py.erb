@@ -25,12 +25,12 @@ try:
     if machineDnsName:
       cmo.setListenAddress(machineDnsName)
     else:
-      cmo.setListenAddress(None)  
+      cmo.setListenAddress(None)
 
     cmo.setListenPort(portNumber)
 
     save()
-    activate()          
+    activate()
     print "~~~~COMMAND SUCCESFULL~~~~"
 
 except:

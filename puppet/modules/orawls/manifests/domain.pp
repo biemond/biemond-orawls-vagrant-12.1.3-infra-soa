@@ -3,16 +3,16 @@
 # setup a new weblogic domain
 ##
 define orawls::domain (
-  $version                               = hiera('wls_version'                   , 1111),  # 1036|1111|1211|1212|1213
+  $version                               = hiera('wls_version'                   , 1111),  # 1036|1111|1211|1212|1213|1221
   $weblogic_home_dir                     = hiera('wls_weblogic_home_dir'), # /opt/oracle/middleware11gR1/wlserver_103
   $middleware_home_dir                   = hiera('wls_middleware_home_dir'), # /opt/oracle/middleware11gR1
   $jdk_home_dir                          = hiera('wls_jdk_home_dir'), # /usr/java/jdk1.7.0_45
   $wls_domains_dir                       = hiera('wls_domains_dir'               , undef),
   $wls_apps_dir                          = hiera('wls_apps_dir'                  , undef),
-  $domain_template                       = hiera('domain_template'               , 'standard'), # adf|osb|osb_soa_bpm|osb_soa|soa|soa_bpm|bam|wc|wc_wcc_bpm|oud
+  $domain_template                       = hiera('domain_template'               , 'standard'), # adf|adf_restricted|osb|osb_soa_bpm|osb_soa|soa|soa_bpm|bam|wc|wc_wcc_bpm|oud
   $bam_enabled                           = true,  #only for SOA Suite
   $b2b_enabled                           = false, #only for SOA Suite 12.1.3 with b2b
-  $ess_enabled                           = true,  #only for SOA Suite 12.1.3
+  $ess_enabled                           = false, #only for SOA Suite 12.1.3
   $owsm_enabled                          = false, #only for OSB domain_template on 10.3.6
   $domain_name                           = hiera('domain_name'),
   $development_mode                      = true,
@@ -27,6 +27,9 @@ define orawls::domain (
   $nodemanager_secure_listener           = true,
   $weblogic_user                         = hiera('wls_weblogic_user'             , 'weblogic'),
   $weblogic_password                     = hiera('domain_wls_password'),
+  $nodemanager_username                  = undef, # When not specified, it'll use the weblogic_user
+  $nodemanager_password                  = undef, # When not specified, it'll use the weblogic_password
+  $domain_password                       = undef, # When not specified, it'll use the weblogic_password
   $jsse_enabled                          = hiera('wls_jsse_enabled'              , false),
   $webtier_enabled                       = false,
   $os_user                               = hiera('wls_os_user'), # oracle
@@ -156,6 +159,38 @@ define orawls::domain (
       $templateB2B          = "${middleware_home_dir}/soa/common/templates/wls/oracle.soa.b2b_template_12.1.3.jar"
       $templateHEALTH       = "${middleware_home_dir}/soa/common/templates/wls/oracle.soa.healthcare_template_12.1.3.jar"
 
+    } elsif $version == 1221 {
+      $template          = "${weblogic_home_dir}/common/templates/wls/wls.jar"
+      $templateWS        = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.wls-webservice-template.jar"
+      $templateJaxWS     = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.wls-webservice-jaxws-template.jar"
+      $templateSoapJms   = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.wls-webservice-soapjms-template.jar"
+      $templateCoherence = "${weblogic_home_dir}/common/templates/wls/wls_coherence_template.jar"
+
+      if $domain_template == 'adf_restricted' {
+        $templateEM        = "${middleware_home_dir}/em/common/templates/wls/oracle.em_wls_restricted_template.jar"
+        $templateJRF       = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.jrf_restricted_template.jar"
+        $templateOHS       = "${middleware_home_dir}/ohs/common/templates/wls/ohs_jrf_restricted_template.jar"
+        $restricted        = true
+      } else {
+        $templateEM        = "${middleware_home_dir}/em/common/templates/wls/oracle.em_wls_template.jar"
+        $templateJRF       = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.jrf_template.jar"
+        $templateOHS       = "${middleware_home_dir}/ohs/common/templates/wls/ohs_managed_template.jar"
+      }
+
+      $templateApplCore  = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.applcore.model.stub_template.jar"
+      $templateWSMPM     = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.wsmpm_template.jar"
+
+      $templateEMWebTier = "${middleware_home_dir}/em/common/templates/wls/oracle.em_webtier_template.jar"
+      $templateESS_EM    = "${middleware_home_dir}/em/common/templates/wls/oracle.em_ess_template.jar"
+      $templateESS       = "${middleware_home_dir}/oracle_common/common/templates/wls/oracle.ess.basic_template.jar"
+
+      $templateOSB          = "${middleware_home_dir}/osb/common/templates/wls/oracle.osb_template.jar"
+      $templateSOA          = "${middleware_home_dir}/soa/common/templates/wls/oracle.soa_template.jar"
+      $templateBPM          = "${middleware_home_dir}/soa/common/templates/wls/oracle.bpm_template.jar"
+      $templateBAM          = "${middleware_home_dir}/soa/common/templates/wls/oracle.bam.server_template.jar"
+      $templateB2B          = "${middleware_home_dir}/soa/common/templates/wls/oracle.soa.b2b_template.jar"
+      $templateHEALTH       = "${middleware_home_dir}/soa/common/templates/wls/oracle.soa.healthcare_template.jar"
+
     } else {
       $template          = "${weblogic_home_dir}/common/templates/domains/wls.jar"
       $templateWS        = "${weblogic_home_dir}/common/templates/applications/wls_webservice.jar"
@@ -191,18 +226,26 @@ define orawls::domain (
     } elsif $domain_template == 'osb' {
       $extensionsTemplateFile = 'orawls/domains/extensions/osb_template.py.erb'
 
-      if ( $version == 1213 ) {
+      if ( $version == 1221 ) {
+        $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
+      }
+      elsif ( $version == 1213 ) {
         $wlstPath      = "${middleware_home_dir}/osb/common/bin"
-      } else {
+      }
+      else {
         $wlstPath      = "${middleware_home_dir}/Oracle_OSB1/common/bin"
       }
 
     } elsif $domain_template == 'osb_soa' or $domain_template == 'osb_soa_bpm' {
       $extensionsTemplateFile = 'orawls/domains/extensions/soa_osb_template.py.erb'
 
-      if ( $version == 1213 ) {
+      if ( $version == 1221 ) {
+        $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
+      }
+      elsif ( $version == 1213 ) {
         $wlstPath      = "${middleware_home_dir}/soa/common/bin"
-      } else {
+      }
+      else {
         $wlstPath      = "${middleware_home_dir}/Oracle_SOA1/common/bin"
       }
       if $domain_template == 'osb_soa' {
@@ -214,9 +257,13 @@ define orawls::domain (
     } elsif $domain_template == 'soa' or $domain_template == 'soa_bpm' {
       $extensionsTemplateFile = 'orawls/domains/extensions/soa_template.py.erb'
 
-      if ( $version == 1213 ) {
+      if ( $version == 1221 ) {
+        $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
+      }
+      elsif ( $version == 1213 ) {
         $wlstPath      = "${middleware_home_dir}/soa/common/bin"
-      } else {
+      }
+      else {
         $wlstPath      = "${middleware_home_dir}/Oracle_SOA1/common/bin"
       }
       if $domain_template == 'soa' {
@@ -228,13 +275,17 @@ define orawls::domain (
     } elsif $domain_template == 'bam' {
       $extensionsTemplateFile = 'orawls/domains/extensions/bam_template.py.erb'
 
-      if ( $version == 1213 ) {
+      if ( $version == 1221 ) {
+        $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
+      }
+      elsif ( $version == 1213 ) {
         $wlstPath      = "${middleware_home_dir}/soa/common/bin"
-      } else {
+      }
+      else {
         $wlstPath      = "${middleware_home_dir}/Oracle_SOA1/common/bin"
       }
 
-    } elsif $domain_template == 'adf' {
+    } elsif ( $domain_template == 'adf' or $domain_template == 'adf_restricted' ) {
       $extensionsTemplateFile = 'orawls/domains/extensions/jrf_template.py.erb'
 
       $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
@@ -252,13 +303,21 @@ define orawls::domain (
     } elsif $domain_template == 'wc' {
       $extensionsTemplateFile = 'orawls/domains/extensions/wc_template.py.erb'
 
-      $wlstPath      = "${middleware_home_dir}/Oracle_WC1/common/bin"
-
+      if ( $version == 1221 ) {
+        $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
+      }
+      else {
+        $wlstPath      = "${middleware_home_dir}/Oracle_WC1/common/bin"
+      }
     } elsif $domain_template == 'wc_wcc_bpm' {
       $extensionsTemplateFile = 'orawls/domains/extensions/wc_wcc_template.py.erb'
 
-      $wlstPath      = "${middleware_home_dir}/Oracle_WCC1/common/bin"
-
+      if ( $version == 1221 ) {
+        $wlstPath      = "${middleware_home_dir}/oracle_common/common/bin"
+      }
+      else {
+        $wlstPath      = "${middleware_home_dir}/Oracle_WCC1/common/bin"
+      }
     } else {
       $extensionsTemplateFile = undef
 
@@ -426,7 +485,7 @@ define orawls::domain (
     }
 
     # FMW RCU only for wls 12.1.2 or higher and when template is not standard
-    if ( $version >= 1212 and $domain_template != 'standard' ) {
+    if ( $version >= 1212 and $domain_template != 'standard' and $domain_template != 'adf_restricted' ) {
 
       if ( $domain_template == 'adf' ) {
         $rcu_domain_template = 'adf'
@@ -448,6 +507,7 @@ define orawls::domain (
         }
 
         orawls::utils::rcu{ "RCU_12c ${title}":
+          version                     => $version,
           fmw_product                 => $rcu_domain_template,
           oracle_fmw_product_home_dir => "${middleware_home_dir}/oracle_common",
           jdk_home_dir                => $jdk_home_dir,

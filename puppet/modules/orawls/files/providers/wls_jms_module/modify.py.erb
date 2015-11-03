@@ -14,7 +14,7 @@ try:
 
     cd('/')
     cd('/SystemResources/'+name)
-    
+
     targets     = String(target).split(",")
     targettypes = String(targetType).split(",")
     targetList  = []
@@ -23,9 +23,9 @@ try:
       targetList.append( ObjectName('com.bea:Name=' + targets[i] + ',Type='+targettypes[i]) )
 
     set('Targets',jarray.array(targetList, ObjectName))
-    
+
     save()
-    activate()          
+    activate()
     print "~~~~COMMAND SUCCESFULL~~~~"
 
 except:

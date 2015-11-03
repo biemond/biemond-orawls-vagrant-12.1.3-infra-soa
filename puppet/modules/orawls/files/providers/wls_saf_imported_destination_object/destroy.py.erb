@@ -19,9 +19,9 @@ try:
         cmo.destroySAFQueue(getMBean('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/SAFImportedDestinations/'+imported_destination+'/SAFQueues/'+name))
     else:
         cmo.destroySAFTopic(getMBean('/JMSSystemResources/'+jmsmodule+'/JMSResource/'+jmsmodule+'/SAFImportedDestinations/'+imported_destination+'/SAFTopics/'+name))
-    
+
     save()
-    activate()          
+    activate()
     print "~~~~COMMAND SUCCESFULL~~~~"
 
 except:

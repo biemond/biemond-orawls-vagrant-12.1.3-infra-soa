@@ -101,7 +101,7 @@ domain_instances:
 #     log_output:               *logoutput
 #     nodemanager_address:      "10.10.10.21"
 #     repository_database_url:  "jdbc:oracle:thin:@soadb.example.com:1521/soarepos.example.com"
-#     repository_prefix:        "DEV"
+#     repository_prefix:        "DEV2"
 #     repository_password:      "Welcome01"
 #     repository_sys_password:  "Welcome01"
 #     rcu_database_url:         "soadb.example.com:1521:soarepos.example.com"
@@ -127,6 +127,7 @@ domain_instances:
 
 wls_setting_instances:
   'default':
+    debug_module:       'true'
     user:               *wls_os_user
     weblogic_home_dir:  *wls_weblogic_home_dir
     connect_url:        "t3://10.10.10.21:7001"
@@ -180,53 +181,53 @@ fmw_cluster_instances:
 #     bam_cluster_name:     "BamCluster"
 #     log_output:           *logoutput
 #     bam_enabled:          true
-#     repository_prefix:    "DEV"
+#     repository_prefix:    "DEV2"
 
-# # fmw cluster
-# fmw_cluster_instances:
-#   'soaCluster':
-#     domain_name:          "soa_domain"
-#     soa_cluster_name:     "SoaCluster"
-#     bam_cluster_name:     "BamCluster"
-#     log_output:           *logoutput
-#     bpm_enabled:          true
-#     bam_enabled:          true
-#     soa_enabled:          true
-#     osb_enabled:          false
-#     b2b_enabled:          true
-#     ess_enabled:          true
-#     repository_prefix:    "DEV"
+# fmw cluster
+fmw_cluster_instances:
+  'soaCluster':
+    domain_name:          "soa_domain"
+    soa_cluster_name:     "SoaCluster"
+    bam_cluster_name:     "BamCluster"
+    log_output:           *logoutput
+    bpm_enabled:          true
+    bam_enabled:          true
+    soa_enabled:          true
+    osb_enabled:          false
+    b2b_enabled:          true
+    ess_enabled:          true
+    repository_prefix:    "DEV"
 
 
-fmwlogdir_instances:
-  'AdminServer':
-     log_output:      true
-     server:          'AdminServer'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'SoaServer1':
-     log_output:      true
-     server:          'SoaServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'BamServer1':
-     log_output:      true
-     server:          'BamServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'OsbServer1':
-     log_output:      true
-     server:          'OsbServer1'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'SoaServer2':
-     log_output:      true
-     server:          'SoaServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'BamServer2':
-     log_output:      true
-     server:          'BamServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
-  'OsbServer2':
-     log_output:      true
-     server:          'OsbServer2'
-     require:         Orawls::Utils::Fmwcluster[soaCluster]
+# fmwlogdir_instances:
+#   'AdminServer':
+#      log_output:      true
+#      server:          'AdminServer'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'SoaServer1':
+#      log_output:      true
+#      server:          'SoaServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'BamServer1':
+#      log_output:      true
+#      server:          'BamServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'OsbServer1':
+#      log_output:      true
+#      server:          'OsbServer1'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'SoaServer2':
+#      log_output:      true
+#      server:          'SoaServer2'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'BamServer2':
+#      log_output:      true
+#      server:          'BamServer2'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
+#   'OsbServer2':
+#      log_output:      true
+#      server:          'OsbServer2'
+#      require:         Orawls::Utils::Fmwcluster[soaCluster]
 
 
 machines_instances:
@@ -245,7 +246,7 @@ machines_instances:
 
 server_vm_args_permsize:      &server_vm_args_permsize     '-XX:PermSize=256m'
 server_vm_args_max_permsize:  &server_vm_args_max_permsize '-XX:MaxPermSize=752m'
-server_vm_args_memory:        &server_vm_args_memory       '-Xms752m'
+server_vm_args_memory:        &server_vm_args_memory       '-Xms1024m'
 server_vm_args_max_memory:    &server_vm_args_max_memory   '-Xmx1532m'
 
 
@@ -507,61 +508,61 @@ cluster_instances:
       - Wls_server[OsbServer2]
 
 
-resource_adapter_instances:
-  'JmsAdapter_hr':
-    adapter_name:              'JmsAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/JmsAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_JMS.xml'
-    adapter_entry:             'eis/JMS/cf'
-    adapter_entry_property:    'ConnectionFactoryLocation'
-    adapter_entry_value:       'jms/cf'
-  'JmsAdapter_hr2':
-    adapter_name:              'JmsAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/JmsAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_JMS.xml'
-    adapter_entry:             'eis/JMS/cf2'
-    adapter_entry_property:    'ConnectionFactoryLocation'
-    adapter_entry_value:       'jms/cf2'
-  'AqAdapter_hr':
-    adapter_name:              'AqAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/AqAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_AQ.xml'
-    adapter_entry:             'eis/AQ/hr'
-    adapter_entry_property:    'XADataSourceName'
-    adapter_entry_value:       'jdbc/hrDS'
-  'DbAdapter_hr':
-    adapter_name:              'DbAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/DbAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_DB.xml'
-    adapter_entry:             'eis/DB/hr'
-    adapter_entry_property:    'XADataSourceName'
-    adapter_entry_value:       'jdbc/hrDS'
-  'DbAdapter_hr2':
-    adapter_name:              'DbAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/DbAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_DB.xml'
-    adapter_entry:             'eis/DB/hr2'
-    adapter_entry_property:    'xADataSourceName'
-    adapter_entry_value:       'jdbc/hrDS2'
-    log_output:                *logoutput
-  'FTPAdapter_hr':
-    adapter_name:              'FtpAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/FtpAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_FTP.xml'
-    adapter_entry:             'eis/FTP/xx'
-    adapter_entry_property:    'FtpAbsolutePathBegin;FtpPathSeparator;Host;ListParserKey;Password;ServerType;UseFtps;Username;UseSftp'
-    adapter_entry_value:       '/BDDC;/;l2-ibrfongen02.nl.rsg;UNIX;;unix;false;kim;false'
-  'FileAdapter_hr':
-    adapter_name:              'FileAdapter'
-    adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/FileAdapter.rar"
-    adapter_plan_dir:          "/opt/oracle/middleware12c"
-    adapter_plan:              'Plan_FILE.xml'
-    adapter_entry:             'eis/FileAdapterXX'
-    adapter_entry_property:    'ControlDir;IsTransacted'
-    adapter_entry_value:       '/tmp/aaa;false'
+# resource_adapter_instances:
+#   'JmsAdapter_hr':
+#     adapter_name:              'JmsAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/JmsAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_JMS.xml'
+#     adapter_entry:             'eis/JMS/cf'
+#     adapter_entry_property:    'ConnectionFactoryLocation'
+#     adapter_entry_value:       'jms/cf'
+#   'JmsAdapter_hr2':
+#     adapter_name:              'JmsAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/JmsAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_JMS.xml'
+#     adapter_entry:             'eis/JMS/cf2'
+#     adapter_entry_property:    'ConnectionFactoryLocation'
+#     adapter_entry_value:       'jms/cf2'
+#   'AqAdapter_hr':
+#     adapter_name:              'AqAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/AqAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_AQ.xml'
+#     adapter_entry:             'eis/AQ/hr'
+#     adapter_entry_property:    'XADataSourceName'
+#     adapter_entry_value:       'jdbc/hrDS'
+#   'DbAdapter_hr':
+#     adapter_name:              'DbAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/DbAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_DB.xml'
+#     adapter_entry:             'eis/DB/hr'
+#     adapter_entry_property:    'XADataSourceName'
+#     adapter_entry_value:       'jdbc/hrDS'
+#   'DbAdapter_hr2':
+#     adapter_name:              'DbAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/DbAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_DB.xml'
+#     adapter_entry:             'eis/DB/hr2'
+#     adapter_entry_property:    'xADataSourceName'
+#     adapter_entry_value:       'jdbc/hrDS2'
+#     log_output:                *logoutput
+#   'FTPAdapter_hr':
+#     adapter_name:              'FtpAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/FtpAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_FTP.xml'
+#     adapter_entry:             'eis/FTP/xx'
+#     adapter_entry_property:    'FtpAbsolutePathBegin;FtpPathSeparator;Host;ListParserKey;Password;ServerType;UseFtps;Username;UseSftp'
+#     adapter_entry_value:       '/BDDC;/;l2-ibrfongen02.nl.rsg;UNIX;;unix;false;kim;false'
+#   'FileAdapter_hr':
+#     adapter_name:              'FileAdapter'
+#     adapter_path:              "/opt/oracle/middleware12c/soa/soa/connectors/FileAdapter.rar"
+#     adapter_plan_dir:          "/opt/oracle/middleware12c"
+#     adapter_plan:              'Plan_FILE.xml'
+#     adapter_entry:             'eis/FileAdapterXX'
+#     adapter_entry_property:    'ControlDir;IsTransacted'
+#     adapter_entry_value:       '/tmp/aaa;false'

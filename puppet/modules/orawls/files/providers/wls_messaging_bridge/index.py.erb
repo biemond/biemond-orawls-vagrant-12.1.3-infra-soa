@@ -32,7 +32,7 @@ for token in m:
     sourcedestinationMbean = cmo.getSourceDestination()
     if sourcedestinationMbean:
        path = getPath(sourcedestinationMbean)
-       cd("/"+path) 
+       cd("/"+path)
        sourcedestination  = get('Name')
        cd('/MessagingBridges/'+token)
     else:
@@ -41,7 +41,7 @@ for token in m:
     targetdestinationMbean = cmo.getTargetDestination()
     if targetdestinationMbean:
        path = getPath(targetdestinationMbean)
-       cd("/"+path) 
+       cd("/"+path)
        targetdestination  = get('Name')
        cd('/MessagingBridges/'+token)
     else:

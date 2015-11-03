@@ -27,7 +27,7 @@ try:
     cmo.setDestinationJNDIName(destinationjndi)
     cmo.setDestinationType(destinationtype)
     cmo.setInitialContextFactory(initialcontextfactory)
-    
+
     if user_name:
         cmo.setUserName(user_name)
 
@@ -35,7 +35,7 @@ try:
         cmo.setUserPassword(password)
 
     save()
-    activate()          
+    activate()
     print "~~~~COMMAND SUCCESFULL~~~~"
 
 except:
